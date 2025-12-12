@@ -1,8 +1,16 @@
-# Welcome to your Expo app 👋
+# Arduino Control App 🤖
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native app built with Expo for controlling Arduino devices via Bluetooth. This project uses Expo's development build to support native Bluetooth capabilities.
 
-## Get started
+## 🚀 Prerequisites
+
+- **Node.js** (v18 or higher)
+- **Android Studio** (for Android development)
+- **Xcode** (for iOS development - Mac only)
+- **Android device or emulator** with Bluetooth
+- **Arduino board** with Bluetooth module (HC-05, HC-06, or BLE)
+
+## 📦 Installation
 
 1. Install dependencies
 
@@ -10,30 +18,56 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Build the development app (first time only)
 
+   **For Android:**
    ```bash
-   npx expo start
+   npm run android
    ```
 
-In the output, you'll find options to open the app in a
+   **For iOS (Mac only):**
+   ```bash
+   npm run ios
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   > **Note:** The first build takes 5-10 minutes. This installs a custom development build on your device with native Bluetooth support.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+3. Start the development server
 
-## Get a fresh project
+   ```bash
+   npm start
+   ```
 
-When you're ready, run:
+   Then press `a` for Android or `i` for iOS to launch the app.
 
-```bash
-npm run reset-project
-```
+## 🏗️ Project Structure
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+- **`app/`** - Application screens and navigation (Expo Router)
+  - `(tabs)/` - Tab-based navigation screens
+  - `_layout.tsx` - Root layout with theme provider
+  - `modal.tsx` - Example modal screen
+- **`components/`** - Reusable UI components
+- **`hooks/`** - Custom React hooks
+- **`constants/`** - App-wide constants (colors, themes)
+- **`assets/`** - Images and static resources
+- **`android/`** - Native Android code (auto-generated)
+
+## 🎯 Development Build vs Expo Go
+
+This app uses **Expo Development Build** instead of Expo Go because:
+- ✅ Supports native Bluetooth libraries
+- ✅ Can add custom native modules
+- ✅ Full access to device capabilities
+- ✅ Still maintains fast refresh and Expo development experience
+
+## 🔧 Available Scripts
+
+- `npm start` - Start the development server with dev client
+- `npm run android` - Build and run on Android
+- `npm run ios` - Build and run on iOS
+- `npm run web` - Run on web browser
+- `npm run lint` - Run ESLint
+- `npm run reset-project` - Reset to blank template
 
 ## Learn more
 
