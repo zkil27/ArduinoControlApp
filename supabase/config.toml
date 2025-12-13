@@ -2,8 +2,8 @@
 # Get these values from: https://app.supabase.com/project/_/settings/api
 
 [api]
-# API URL - find this in your project settings
-enabled = true
+# API URL - https://rziqggjazwhwtgbikkcf.supabase.co
+enabled = true 
 port = 54321
 schemas = ["public", "storage", "graphql_public"]
 extra_search_path = ["public", "extensions"]
