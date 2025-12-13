@@ -12,9 +12,12 @@ A React Native app built with Expo for controlling Arduino devices via Bluetooth
 
 ## 📦 Installation
 
-1. Install dependencies
+### Frontend (React Native App)
+
+1. Navigate to frontend folder and install dependencies
 
    ```bash
+   cd frontend
    npm install
    ```
 
@@ -40,17 +43,44 @@ A React Native app built with Expo for controlling Arduino devices via Bluetooth
 
    Then press `a` for Android or `i` for iOS to launch the app.
 
+### Backend (Node.js Server)
+
+1. Navigate to backend folder and install dependencies
+
+   ```bash
+   cd backend
+   npm install
+   ```
+
+2. Start the server
+
+   ```bash
+   npm run dev
+   ```
+
 ## 🏗️ Project Structure
 
-- **`app/`** - Application screens and navigation (Expo Router)
-  - `(tabs)/` - Tab-based navigation screens
-  - `_layout.tsx` - Root layout with theme provider
-  - `modal.tsx` - Example modal screen
-- **`components/`** - Reusable UI components
-- **`hooks/`** - Custom React hooks
-- **`constants/`** - App-wide constants (colors, themes)
-- **`assets/`** - Images and static resources
-- **`android/`** - Native Android code (auto-generated)
+```
+ArduinoControlApp/
+├── frontend/                 # React Native mobile app
+│   ├── app/                  # Screens and navigation (Expo Router)
+│   │   ├── (tabs)/           # Tab-based navigation screens
+│   │   ├── _layout.tsx       # Root layout with theme provider
+│   │   └── modal.tsx         # Example modal screen
+│   ├── components/           # Reusable UI components
+│   ├── hooks/                # Custom React hooks
+│   ├── constants/            # App-wide constants (colors, themes)
+│   ├── assets/               # Images and static resources
+│   ├── android/              # Native Android code (auto-generated)
+│   └── package.json          # Frontend dependencies
+│
+├── backend/                  # Node.js backend server
+│   ├── src/
+│   │   └── index.js          # Server entry point
+│   └── package.json          # Backend dependencies
+│
+└── README.md
+```
 
 ## 🎯 Development Build vs Expo Go
 
