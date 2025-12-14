@@ -41,7 +41,7 @@ export default function SplashScreenPage() {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.logoContainer, { opacity: fadeAnim }]}>
-        <ParkSenseLogo size="large" />
+        <ParkSenseLogo size="large" showTagline={true} />
       </Animated.View>
     </View>
   );

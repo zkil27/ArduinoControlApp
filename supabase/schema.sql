@@ -199,7 +199,8 @@ INSERT INTO parking_slots (name, is_placeholder) VALUES
   ('P1', false),
   ('P2', false),
   ('P3', false),
-  ('P4', false)
+  ('P4', false),
+  ('P5', false)
 ON CONFLICT DO NOTHING;
 
 -- Insert corresponding slot status for each slot

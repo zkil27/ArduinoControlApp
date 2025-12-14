@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import { WebLayout } from '@/components/WebContainer';
 import { Colors } from '@/constants/theme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -43,12 +44,15 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={ParkSenseTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="light" />
+      <WebLayout>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        </Stack>
+        <StatusBar style="light" />
+      </WebLayout>
     </ThemeProvider>
   );
 }
+

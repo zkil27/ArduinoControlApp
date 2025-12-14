@@ -1,36 +1,57 @@
 import { Tabs } from 'expo-router';
 import React, { useRef } from 'react';
 import {
-  Animated,
-  Dimensions,
-  PanResponder,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    PanResponder,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 import { FontFamily } from '@/constants/theme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TAB_WIDTH = SCREEN_WIDTH / 2;
-const SLIDER_WIDTH = TAB_WIDTH - 20;
+// Default values, will be updated on layout
+const DEFAULT_TAB_WIDTH = 200;
 const SWIPE_THRESHOLD = 50;
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
-  const slideAnim = useRef(new Animated.Value(state.index * TAB_WIDTH)).current;
+  // Track container width dynamically for responsive layout
+  const [containerWidth, setContainerWidth] = React.useState(DEFAULT_TAB_WIDTH * 2);
+  const tabWidth = containerWidth / 2;
+  const sliderWidth = tabWidth - 20;
+  
+  const slideAnim = useRef(new Animated.Value(state.index * tabWidth)).current;
   const currentIndex = useRef(state.index);
+  const tabWidthRef = useRef(tabWidth);
+  
+  // Update ref when tabWidth changes
+  React.useEffect(() => {
+    tabWidthRef.current = tabWidth;
+  }, [tabWidth]);
+  
+  // Handle layout changes
+  const onLayout = React.useCallback((event: { nativeEvent: { layout: { width: number } } }) => {
+    const { width } = event.nativeEvent.layout;
+    if (width > 0 && width !== containerWidth) {
+      setContainerWidth(width);
+      // Update animation position for new width
+      const newTabWidth = width / 2;
+      slideAnim.setValue(currentIndex.current * newTabWidth);
+    }
+  }, [containerWidth, slideAnim]);
   
   // Update animation when tab changes externally
   React.useEffect(() => {
     currentIndex.current = state.index;
     Animated.spring(slideAnim, {
-      toValue: state.index * TAB_WIDTH,
+      toValue: state.index * tabWidth,
       useNativeDriver: false,
       tension: 68,
       friction: 12,
     }).start();
-  }, [state.index, slideAnim]);
+  }, [state.index, slideAnim, tabWidth]);
   
   // Pan responder for swipe gestures
   const panResponder = useRef(
@@ -44,10 +65,11 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
       },
       onPanResponderMove: (_, gestureState) => {
         // Calculate new position based on drag
-        const basePosition = currentIndex.current * TAB_WIDTH;
+        const currentTabWidth = tabWidthRef.current;
+        const basePosition = currentIndex.current * currentTabWidth;
         let newPosition = basePosition + gestureState.dx;
         // Clamp position
-        newPosition = Math.max(0, Math.min(newPosition, TAB_WIDTH));
+        newPosition = Math.max(0, Math.min(newPosition, currentTabWidth));
         slideAnim.setValue(newPosition);
       },
       onPanResponderRelease: (_, gestureState) => {
@@ -70,7 +92,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
         } else {
           // Snap back to current position
           Animated.spring(slideAnim, {
-            toValue: currentIndex.current * TAB_WIDTH,
+            toValue: currentIndex.current * tabWidthRef.current,
             useNativeDriver: false,
             tension: 68,
             friction: 12,
@@ -82,13 +104,13 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
   
   // Interpolate background color: blue -> pink
   const backgroundColor = slideAnim.interpolate({
-    inputRange: [0, TAB_WIDTH],
+    inputRange: [0, tabWidth],
     outputRange: ['#1F4FCE', '#c3257a'],
     extrapolate: 'clamp',
   });
   
   return (
-    <View style={styles.tabBarContainer} {...panResponder.panHandlers}>
+    <View style={styles.tabBarContainer} onLayout={onLayout} {...panResponder.panHandlers}>
       {/* Animated sliding background */}
       <Animated.View
         style={[
@@ -96,7 +118,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           {
             backgroundColor,
             transform: [{ translateX: Animated.add(slideAnim, 10) }],
-            width: SLIDER_WIDTH,
+            width: sliderWidth,
           },
         ]}
       />
@@ -144,9 +166,12 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 }
 
 export default function TabLayout() {
+  // On web, we use the sidebar navigation instead of bottom tabs
+  const isWeb = Platform.OS === 'web';
+  
   return (
     <Tabs
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => isWeb ? null : <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
       }}
@@ -181,10 +206,10 @@ const styles = StyleSheet.create({
   },
   bottomLine: {
     position: 'absolute',
-    top: 45,
     left: 0,
     right: 0,
     bottom: 0,
+    height: 35,
   },
   tabSlider: {
     position: 'absolute',

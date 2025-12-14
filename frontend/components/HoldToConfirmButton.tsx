@@ -1,10 +1,10 @@
 import { FontFamily } from '@/constants/theme';
 import React, { useCallback, useRef, useState } from 'react';
 import {
-    Animated,
-    Pressable,
-    StyleSheet,
-    Text
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text
 } from 'react-native';
 
 interface HoldToConfirmButtonProps {
@@ -17,7 +17,7 @@ interface HoldToConfirmButtonProps {
 
 export function HoldToConfirmButton({
   label,
-  holdDuration = 5000, // 5 seconds default
+  holdDuration = 1000,
   onConfirm,
   disabled = false,
   variant = 'danger',
@@ -28,9 +28,10 @@ export function HoldToConfirmButton({
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTime = useRef<number>(0);
   const animationFrame = useRef<number | null>(null);
+  const isHoldingRef = useRef(false); // Use ref to avoid stale closure
   
   const updateProgress = useCallback(() => {
-    if (!isHolding) return;
+    if (!isHoldingRef.current) return;
     
     const elapsed = Date.now() - startTime.current;
     const newProgress = Math.min(elapsed / holdDuration, 1);
@@ -39,12 +40,13 @@ export function HoldToConfirmButton({
     if (newProgress < 1) {
       animationFrame.current = requestAnimationFrame(updateProgress);
     }
-  }, [holdDuration, isHolding]);
+  }, [holdDuration]);
   
   const handlePressIn = useCallback(() => {
     if (disabled) return;
     
     setIsHolding(true);
+    isHoldingRef.current = true; // Set ref immediately
     startTime.current = Date.now();
     
     // Start progress animation
@@ -60,6 +62,7 @@ export function HoldToConfirmButton({
     // Set timer for completion
     holdTimer.current = setTimeout(() => {
       setIsHolding(false);
+      isHoldingRef.current = false;
       setProgress(0);
       progressAnim.setValue(0);
       onConfirm();
@@ -81,6 +84,7 @@ export function HoldToConfirmButton({
     progressAnim.stopAnimation();
     progressAnim.setValue(0);
     setIsHolding(false);
+    isHoldingRef.current = false;
     setProgress(0);
   }, [progressAnim]);
   
@@ -99,18 +103,19 @@ export function HoldToConfirmButton({
         disabled && styles.disabled,
       ]}
     >
-      {/* Progress overlay - red fill */}
+      {/* Progress overlay - red for danger, green for primary */}
       <Animated.View
         style={[
           styles.progressOverlay,
           {
             width: progressWidth,
+            backgroundColor: variant === 'primary' ? '#2d8a4e' : '#ba2d2d',
           },
         ]}
       />
       
       <Text style={styles.label}>
-        {isHolding ? `${Math.round(progress * 100)}%` : label}
+        {label}
       </Text>
     </Pressable>
   );
@@ -138,7 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ba2d2d',
   },
   label: {
-    color: '#1e1e1e',
+    color: '#ededed',
     fontFamily: FontFamily.mono,
     fontSize: 16,
     fontWeight: '400',

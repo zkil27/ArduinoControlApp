@@ -1,26 +1,31 @@
+import { BluetoothDeviceModal } from '@/components/BluetoothDeviceModal';
 import { BluetoothHeader } from '@/components/BluetoothHeader';
 import { SlotCard, SlotStatus } from '@/components/SlotCard';
 import { SlotDetailsModal } from '@/components/SlotDetailsModal';
+import { WebHeader } from '@/components/WebHeader';
 import { Colors, FontFamily, FontSizes, Spacing } from '@/constants/theme';
 import { useBluetooth } from '@/hooks/use-bluetooth';
 import {
-  useDeviceCommands,
-  useDeviceStatus,
-  useParkingSlots,
-  useSlotDetails
+    useDeviceCommands,
+    useDeviceStatus,
+    useParkingSlots,
+    useSlotDetails
 } from '@/hooks/use-parking';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const { slots, loading, error, refresh } = useParkingSlots();
   const { status: deviceStatus } = useDeviceStatus();
   const { sendPingCommand, sendDisableCommand, loading: commandLoading } = useDeviceCommands();
@@ -32,11 +37,19 @@ export default function DashboardScreen() {
     pingSlot,
     disableSlot,
     slots: btSlots,
+    availableDevices,
+    isScanning,
+    error: btError,
+    scanForDevices,
+    connectToDevice,
+    disconnect,
+    connectedDevice,
   } = useBluetooth();
   
   const [refreshing, setRefreshing] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [btModalVisible, setBtModalVisible] = useState(false);
   
   const { 
     slot: selectedSlot, 
@@ -72,16 +85,31 @@ export default function DashboardScreen() {
     }
   }, [selectedSlot, pingSlot]);
 
-  // Handle Disable Slot command - sends via Bluetooth
+  // Handle Disable Slot command - sends via Bluetooth AND updates database
   const handleDisable = useCallback(async () => {
     if (selectedSlot) {
       const slotName = selectedSlot.name;
+      const slotId = selectedSlot.id;
       const currentlyDisabled = selectedSlot.is_disabled;
       console.log(`Sending ${currentlyDisabled ? 'ENABLE' : 'DISABLE'} command for:`, slotName);
-      await disableSlot(slotName, !currentlyDisabled);
-      handleModalClose();
+      
+      try {
+        // Send Bluetooth command to Arduino
+        const btResult = await disableSlot(slotName, !currentlyDisabled);
+        console.log('Bluetooth command result:', btResult);
+        
+        // Update database
+        const dbResult = await sendDisableCommand(slotId, !currentlyDisabled);
+        console.log('Database update result:', dbResult);
+        
+        handleModalClose();
+      } catch (err) {
+        console.error('Error in handleDisable:', err);
+      }
+    } else {
+      console.log('No selected slot for disable command');
     }
-  }, [selectedSlot, disableSlot, handleModalClose]);
+  }, [selectedSlot, disableSlot, sendDisableCommand, handleModalClose]);
 
   // Calculate slot data for modal
   const modalData = useMemo(() => {
@@ -109,7 +137,7 @@ export default function DashboardScreen() {
     };
   }, [selectedSlot, selectedSlotSensorData]);
 
-  // Loading state
+  // Loading state - only shown if fetch takes > 200ms
   if (loading && !refreshing) {
     return (
       <View style={styles.container}>
@@ -117,6 +145,7 @@ export default function DashboardScreen() {
         <BluetoothHeader
           rssi={btRssi}
           isConnected={btConnected}
+          onSettingsPress={() => router.push('/settings')}
         />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -126,14 +155,15 @@ export default function DashboardScreen() {
     );
   }
 
-  // Error state
-  if (error) {
+  // Error state - only show if there are no slots to display
+  if (error && slots.length === 0) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
         <BluetoothHeader
           rssi={btRssi}
           isConnected={btConnected}
+          onSettingsPress={() => router.push('/settings')}
         />
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>Error loading slots</Text>
@@ -144,16 +174,43 @@ export default function DashboardScreen() {
   }
 
   // Separate slots into regular and placeholder
-  const regularSlots = slots.filter(s => !s.is_placeholder);
-  const addSlot = slots.find(s => s.is_placeholder);
+  const regularSlots = slots; // Showing all valid slots
+  const isWeb = Platform.OS === 'web';
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       
-      <BluetoothHeader
-        rssi={btRssi}
-        isConnected={btConnected}
+      {/* Show WebHeader on web, BluetoothHeader on mobile */}
+      {isWeb ? (
+        <WebHeader 
+          title="DASHBOARD" 
+          isConnected={btConnected} 
+          rssi={btRssi} 
+        />
+      ) : (
+        <BluetoothHeader
+          rssi={btRssi}
+          isConnected={btConnected}
+          onStatusPress={() => {
+            scanForDevices();
+            setBtModalVisible(true);
+          }}
+          onSettingsPress={() => router.push('/settings')}
+        />
+      )}
+      
+      {/* Bluetooth Device Selection Modal */}
+      <BluetoothDeviceModal
+        visible={btModalVisible}
+        onClose={() => setBtModalVisible(false)}
+        devices={availableDevices}
+        connectedDevice={connectedDevice}
+        isScanning={isScanning}
+        onScan={scanForDevices}
+        onConnect={connectToDevice}
+        onDisconnect={disconnect}
+        error={btError}
       />
       
       <ScrollView
@@ -175,14 +232,7 @@ export default function DashboardScreen() {
           {regularSlots.map((slot) => {
             const slotStatus = slot.slot_status;
             const status: SlotStatus = slotStatus?.status || 'vacant';
-            const occupiedSince = slotStatus?.occupied_since;
-            
-            let elapsedMinutes = 0;
-            if (occupiedSince && (status === 'occupied' || status === 'overtime')) {
-              elapsedMinutes = Math.floor(
-                (Date.now() - new Date(occupiedSince).getTime()) / (1000 * 60)
-              );
-            }
+            const occupiedSince = slotStatus?.occupied_since || null;
             
             return (
               <SlotCard
@@ -190,28 +240,12 @@ export default function DashboardScreen() {
                 slotId={slot.id}
                 slotName={slot.name}
                 status={status}
-                elapsedMinutes={elapsedMinutes}
+                occupiedSince={occupiedSince}
                 allowedMinutes={slot.allowed_minutes}
                 onPress={handleCardPress}
               />
             );
           })}
-          
-          {/* Add Slot placeholder */}
-          {addSlot && (
-            <SlotCard
-              key={addSlot.id}
-              slotId={addSlot.id}
-              slotName={addSlot.name}
-              status="add"
-              elapsedMinutes={0}
-              allowedMinutes={0}
-              onPress={() => {
-                // TODO: Implement add slot functionality
-                console.log('Add new parking slot');
-              }}
-            />
-          )}
         </View>
       </ScrollView>
       
@@ -277,5 +311,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    alignContent: 'flex-start',
   },
 });

@@ -1,12 +1,13 @@
 import { BillingConfig, FontFamily } from '@/constants/theme';
+import { BlurView } from 'expo-blur';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Modal,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { HoldToConfirmButton } from './HoldToConfirmButton';
@@ -28,11 +29,21 @@ export interface SlotDetailsModalProps {
 }
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
+  try {
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Manila', // Force PH time as requested
+    });
+  } catch (e) {
+    // Fallback if timezone is not supported
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
 }
 
 function formatDuration(minutes: number): string {
@@ -85,7 +96,7 @@ export function SlotDetailsModal({
   
   // Update duration every second when modal is visible
   useEffect(() => {
-    if (!visible || status === 'vacant' || status === 'add') {
+    if (!visible || status === 'vacant' || status === 'add' || status === 'disabled' || isDisabled) {
       return;
     }
     
@@ -94,7 +105,7 @@ export function SlotDetailsModal({
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [visible, status]);
+  }, [visible, status, isDisabled]);
   
   const duration = formatDuration(currentElapsed);
   const billing = useMemo(() => calculateBilling(currentElapsed), [currentElapsed]);
@@ -141,12 +152,13 @@ export function SlotDetailsModal({
       animationType="none"
       onRequestClose={onClose}
     >
-      <TouchableOpacity 
-        style={styles.overlay} 
-        activeOpacity={1} 
-        onPress={onClose}
-      >
-        <TouchableOpacity activeOpacity={1} style={styles.modal}>
+      <BlurView intensity={50} tint="dark" style={styles.blurContainer}>
+        <TouchableOpacity 
+          style={styles.overlay} 
+          activeOpacity={1} 
+          onPress={onClose}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.modal}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.slotName}>{slotName}</Text>
@@ -201,11 +213,11 @@ export function SlotDetailsModal({
           {/* Actions */}
           <View style={styles.actions}>
             <HoldToConfirmButton
-              label={isDisabled ? 'ENABLE' : 'DISABLE'}
-              holdDuration={5000}
+              label={(isDisabled || status === 'disabled') ? 'ENABLE' : 'DISABLE'}
+              holdDuration={2000}
               onConfirm={handleDisable}
               disabled={commandLoading}
-              variant="danger"
+              variant={(isDisabled || status === 'disabled') ? 'primary' : 'danger'}
             />
             
             <TouchableOpacity
@@ -222,14 +234,18 @@ export function SlotDetailsModal({
           </View>
         </TouchableOpacity>
       </TouchableOpacity>
+      </BlurView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  blurContainer: {
+    flex: 1,
+  },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(18, 18, 18, 0.85)',
+    backgroundColor: 'rgba(18, 18, 18, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },

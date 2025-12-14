@@ -118,8 +118,49 @@ export function useParkingHistory() {
     );
   }, []);
 
-  // Get today's stats
-  const getTodayStats = useCallback(async () => {
+  // Calculate today's stats from existing sessions (cached, no fetch)
+  const calculateTodayStats = useCallback((): DailyStats => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Filter sessions for today from existing data
+    const todaySessions = sessions.filter(session => {
+      const sessionDate = new Date(session.ended_at);
+      return sessionDate >= today && sessionDate < tomorrow;
+    });
+
+    // Calculate stats
+    let total_sessions = 0;
+    let total_revenue = 0;
+    let total_duration_minutes = 0;
+    let overtime_sessions = 0;
+
+    todaySessions.forEach(session => {
+      total_sessions++;
+      total_revenue += session.amount_charged;
+      total_duration_minutes += session.duration_minutes;
+      if (session.was_overtime) overtime_sessions++;
+    });
+
+    return {
+      date: today.toISOString().split('T')[0],
+      total_sessions,
+      total_revenue,
+      total_duration_minutes,
+      overtime_sessions,
+    };
+  }, [sessions]);
+
+  // Get today's stats (with option to use cache or fetch fresh)
+  const getTodayStats = useCallback(async (useCache: boolean = false) => {
+    // If using cache and we have sessions, calculate from memory
+    if (useCache && sessions.length > 0) {
+      return calculateTodayStats();
+    }
+
+    // Otherwise fetch fresh data
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -135,7 +176,7 @@ export function useParkingHistory() {
       total_duration_minutes: 0,
       overtime_sessions: 0,
     };
-  }, [fetchSessionsByDateRange, calculateDailyStats]);
+  }, [sessions, calculateTodayStats, fetchSessionsByDateRange, calculateDailyStats]);
 
   // Get weekly stats (last 7 days)
   const getWeeklyStats = useCallback(async () => {
@@ -171,10 +212,8 @@ export function useParkingHistory() {
     };
   }, []);
 
-  // Fetch on mount
-  useEffect(() => {
-    fetchRecentSessions();
-  }, [fetchRecentSessions]);
+  // NOTE: Removed auto-fetch on mount to prevent duplicate fetches
+  // Components should call fetchRecentSessions() when they need data
 
   return {
     sessions,
@@ -184,6 +223,7 @@ export function useParkingHistory() {
     fetchRecentSessions,
     fetchSessionsByDateRange,
     calculateDailyStats,
+    calculateTodayStats,
     getTodayStats,
     getWeeklyStats,
   };
