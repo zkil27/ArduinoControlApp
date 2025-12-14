@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -19,20 +18,19 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.parksense.android.bluetooth.BluetoothDeviceInfo
 import com.parksense.android.bluetooth.BluetoothManager
 import com.parksense.android.ui.adapter.BluetoothDeviceAdapter
 import com.parksense.android.ui.fragments.DashboardFragment
 import com.parksense.android.ui.fragments.SettingsFragment
 import com.parksense.android.ui.fragments.StatisticsFragment
+import com.parksense.android.ui.views.CustomBottomNavigation
 
 class MainActivity : AppCompatActivity() {
     
     private lateinit var bluetoothStatusText: TextView
-    private lateinit var rssiText: TextView
-    private lateinit var bottomNav: BottomNavigationView
     private lateinit var bluetoothHeaderLayout: View
+    private lateinit var bottomNav: CustomBottomNavigation
     
     private lateinit var bluetoothManager: BluetoothManager
     private var currentDialog: AlertDialog? = null
@@ -69,32 +67,28 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupViews() {
         bluetoothStatusText = findViewById(R.id.bluetoothStatus)
-        rssiText = findViewById(R.id.rssiValue)
         bottomNav = findViewById(R.id.bottomNavigation)
         bluetoothHeaderLayout = findViewById(R.id.bluetoothHeaderLayout)
         
-        // Set click listener for Bluetooth header
-        bluetoothHeaderLayout.setOnClickListener {
+        // Set click listener for Bluetooth status
+        val statusContainer = findViewById<View>(R.id.bluetoothStatusContainer)
+        statusContainer.setOnClickListener {
             onBluetoothHeaderClick()
+        }
+        
+        // Set click listener for settings icon
+        val settingsIcon = findViewById<View>(R.id.settingsIcon)
+        settingsIcon?.setOnClickListener {
+            // Navigate to settings - placeholder for now
+            Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show()
         }
     }
     
     private fun setupBottomNavigation() {
-        bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_dashboard -> {
-                    loadFragment(DashboardFragment())
-                    true
-                }
-                R.id.nav_statistics -> {
-                    loadFragment(StatisticsFragment())
-                    true
-                }
-                R.id.nav_settings -> {
-                    loadFragment(SettingsFragment())
-                    true
-                }
-                else -> false
+        bottomNav.setOnTabSelectedListener { index ->
+            when (index) {
+                0 -> loadFragment(DashboardFragment())
+                1 -> loadFragment(StatisticsFragment())
             }
         }
     }
@@ -267,14 +261,11 @@ class MainActivity : AppCompatActivity() {
         val isConnected = bluetoothManager.isConnected()
         
         if (isConnected) {
-            val deviceName = bluetoothManager.getConnectedDeviceName() ?: "Device"
-            bluetoothStatusText.text = "Connected"
-            bluetoothStatusText.setTextColor(getColor(R.color.accent_green))
-            rssiText.text = "—" // RSSI would need continuous monitoring
+            bluetoothStatusText.text = "Strong Connection"
+            bluetoothStatusText.setTextColor(android.graphics.Color.parseColor("#42bc2b"))  // Green
         } else {
             bluetoothStatusText.text = "Disconnected"
-            bluetoothStatusText.setTextColor(getColor(R.color.status_overtime))
-            rssiText.text = "-- dBm"
+            bluetoothStatusText.setTextColor(android.graphics.Color.parseColor("#444444"))  // Gray
         }
     }
     
@@ -283,4 +274,3 @@ class MainActivity : AppCompatActivity() {
         bluetoothManager.cleanup()
     }
 }
-

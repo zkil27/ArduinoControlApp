@@ -44,12 +44,12 @@ class SlotAdapter(
             val status = slot.slotStatus?.status ?: "vacant"
             statusText.text = status.uppercase()
             
-            // Set status color
+            // Set status color - matching frontend exactly
             val statusColor = when (status) {
-                "occupied" -> "#42bc2b"
-                "overtime" -> "#ba2d2d"
-                "disabled" -> "#d1d1d1"
-                else -> "#444444"
+                "occupied" -> "#42bc2b"  // Green
+                "overtime" -> "#ba2d2d"  // Red
+                "disabled" -> "#d1d1d1ff" // Light gray for disabled
+                else -> "#444444"        // Dark gray for vacant
             }
             statusText.setTextColor(android.graphics.Color.parseColor(statusColor))
             
