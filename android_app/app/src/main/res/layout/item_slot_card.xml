@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView 
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
-    app:cardBackgroundColor="#121111"
+    android:layout_margin="3dp"
+    app:cardBackgroundColor="#0a0909"
     app:cardCornerRadius="2dp"
     app:cardElevation="0dp"
     app:strokeColor="#272727"
@@ -13,32 +13,33 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="237dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="16dp"
+        android:paddingHorizontal="12dp"
         android:gravity="center_horizontal">
 
-        <!-- Status Label at Top -->
+        <!-- Status Label (matches frontend: fontSize 16, letterSpacing 2) -->
         <TextView
             android:id="@+id/statusText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="VACANT"
             android:textColor="#444444"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:fontFamily="monospace"
-            android:letterSpacing="0.15"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="12dp" />
+            android:letterSpacing="0.125" />
 
-        <!-- Circular Progress -->
+        <!-- Circular Progress (matches frontend: size 80) -->
         <com.parksense.android.ui.views.CircularProgressView
             android:id="@+id/circularProgress"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp" />
 
-        <!-- Timer -->
+        <!-- Timer (matches frontend: fontSize 13, marginTop 12) -->
         <TextView
             android:id="@+id/timerText"
             android:layout_width="wrap_content"
@@ -48,10 +49,9 @@
             android:textColor="#ededed"
             android:textSize="13sp"
             android:fontFamily="monospace"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginTop="12dp" />
 
-        <!-- Slot Name at Bottom -->
+        <!-- Slot Name (matches frontend: fontSize 20, marginTop 8) -->
         <TextView
             android:id="@+id/slotNameText"
             android:layout_width="wrap_content"
@@ -59,9 +59,10 @@
             android:layout_gravity="center"
             android:text="P1"
             android:textColor="#ededed"
-            android:textSize="18sp"
-            android:fontFamily="monospace" />
+            android:textSize="20sp"
+            android:fontFamily="monospace"
+            android:layout_marginTop="8dp" />
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>
