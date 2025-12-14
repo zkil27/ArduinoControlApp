@@ -37,28 +37,44 @@ class SlotAdapter(
         private val timerText: TextView = itemView.findViewById(R.id.timerText)
         private val circularProgress: com.parksense.android.ui.views.CircularProgressView = 
             itemView.findViewById(R.id.circularProgress)
+        private val cardView: com.google.android.material.card.MaterialCardView = itemView as com.google.android.material.card.MaterialCardView
         
         fun bind(slot: ParkingSlot, onSlotClick: (ParkingSlot) -> Unit) {
             slotNameText.text = slot.name
             
             val status = slot.slotStatus?.status ?: "vacant"
+            
+            // STATUS LABEL matching frontend (OCCUPIED, OVERTIME, VACANT, DISABLED)
             statusText.text = status.uppercase()
             
-            // Set status color - matching frontend exactly
+            // COLORS matching frontend theme
             val statusColor = when (status) {
                 "occupied" -> "#42bc2b"  // Green
                 "overtime" -> "#ba2d2d"  // Red
-                "disabled" -> "#d1d1d1ff" // Light gray for disabled
-                else -> "#444444"        // Dark gray for vacant
+                "disabled" -> "#d1d1d1"  // Light gray (frontend uses #d1d1d1ff)
+                else -> "#444444"        // Dark gray for vacant/others
             }
+            
+            // Text Color Logic: Gray for vacant/disabled, White for occupied/overtime
+            val contentColor = if (status == "vacant" || status == "disabled") "#444444" else "#ededed"
+            
+            // Border Color Logic: Red for disabled, Dark Gray for others
+            val borderColor = if (status == "disabled") "#ba2d2d" else "#272727"
+            
+            // Apply Colors
             statusText.setTextColor(android.graphics.Color.parseColor(statusColor))
+            cardView.strokeColor = android.graphics.Color.parseColor(borderColor)
+            timerText.setTextColor(android.graphics.Color.parseColor(contentColor))
+            slotNameText.setTextColor(android.graphics.Color.parseColor(contentColor))
+            
+            // Default Timer Text
+            var displayTime = "00h:00m:00s"
             
             // Calculate and display timer if occupied
             if (status == "occupied" || status == "overtime") {
                 slot.slotStatus?.occupiedSince?.let { occupiedSince ->
                     val elapsedMinutes = calculateElapsedMinutes(occupiedSince)
-                    timerText.text = formatDuration(elapsedMinutes)
-                    timerText.visibility = View.VISIBLE
+                    displayTime = formatDuration(elapsedMinutes)
                     
                     // Calculate progress
                     val progress = if (slot.allowedMinutes > 0) {
@@ -75,9 +91,6 @@ class SlotAdapter(
                     )
                 }
             } else {
-                timerText.text = "00h:00m:00s"
-                timerText.visibility = View.VISIBLE
-                
                 circularProgress.setProgress(
                     progress = 0f,
                     isOvertime = false,
@@ -85,6 +98,8 @@ class SlotAdapter(
                     isDisabled = status == "disabled" || slot.isDisabled
                 )
             }
+            
+            timerText.text = displayTime
             
             // Set click listener
             itemView.setOnClickListener {
@@ -106,7 +121,8 @@ class SlotAdapter(
         private fun formatDuration(minutes: Int): String {
             val hours = minutes / 60
             val mins = minutes % 60
-            return String.format("%02dh:%02dm:00s", hours, mins)
+            val secs = (minutes * 60) % 60 // Approximate seconds since we calculate minutes
+            return String.format("%02dh:%02dm:%02ds", hours, mins, secs)
         }
     }
 }
