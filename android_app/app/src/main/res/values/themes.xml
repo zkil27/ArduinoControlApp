@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ParkSense" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">#42bc2b</item>
+        <item name="colorPrimaryDark">#0a0909</item>
+        <item name="colorAccent">#42bc2b</item>
+        <item name="android:statusBarColor">#0a0909</item>
+        <item name="android:windowBackground">#0a0909</item>
+    </style>
+</resources>
