@@ -33,11 +33,13 @@ A **100% serverless** React Native app for controlling Arduino devices via Bluet
 2. Build the development app (first time only)
 
    **For Android:**
+
    ```bash
    npm run android
    ```
 
    **For iOS (Mac only):**
+
    ```bash
    npm run ios
    ```
@@ -57,31 +59,37 @@ A **100% serverless** React Native app for controlling Arduino devices via Bluet
 This project uses **Supabase** for a fully serverless backend - your React Native app connects directly to the database!
 
 #### 1. Create Supabase Project
+
 - Go to [supabase.com](https://supabase.com) and create a new project
 - Wait 2-3 minutes for project initialization
 
 #### 2. Setup Database
+
 - Open Supabase SQL Editor: https://app.supabase.com/project/_/sql
 - Copy contents of [`supabase/schema.sql`](supabase/schema.sql)
 - Paste and click **Run** to create tables
 
 #### 3. Get API Credentials
+
 - Go to Project Settings → API: https://app.supabase.com/project/_/settings/api
 - Copy your **Project URL** and **anon/public key**
 
 #### 4. Configure Frontend
+
 ```bash
 cd frontend
 cp .env.example .env
 ```
 
 Edit [`frontend/.env`](frontend/.env) and add your credentials:
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
 #### 5. Start Coding! 🎉
+
 The app is ready with real-time hooks. See [`frontend/SUPABASE.md`](frontend/SUPABASE.md) for examples.
 
 ## 🏗️ Project Structure
@@ -109,22 +117,29 @@ ArduinoControlApp/
 │   ├── config.toml                # Local Supabase CLI config
 │   └── SETUP.md                   # Detailed setup guide
 │
-└── REWhy This Stack?
+└── README.md
+```
+
+## Why This Stack?
 
 ### Expo Development Build (not Expo Go)
+
 - ✅ Native Bluetooth support for Arduino control
 - ✅ Custom native modules when needed
 - ✅ Full device capabilities
 - ✅ Fast refresh development experience
 
 ### Supabase (Serverless Backend)
+
 - ✅ **Zero servers to manage** - No Express, no hosting, no DevOps
 - ✅ **Real-time by default** - Sensor data updates instantly across devices
 - ✅ **Built-in authentication** - User management included
 - ✅ **Row Level Security** - Database-level access control
 - ✅ **Auto-scaling** - Handles 1 or 1 million users
 - ✅ **Generous free tier** - Up to 500MB database, 2GB file storage
-- ✅ **PostgreSQL** - Full SQL database, not a NoSQL compromis
+- ✅ **PostgreSQL** - Full SQL database, not a NoSQL compromise
+
+```text
 │  React Native App   │  ← Your frontend (mobile app)
 │  (Expo Dev Build)   │
 └──────────┬──────────┘
@@ -146,6 +161,7 @@ ArduinoControlApp/
 ## 🎯 Development Build vs Expo Go
 
 This app uses **Expo Development Build** instead of Expo Go because:
+
 - ✅ Supports native Bluetooth libraries
 - ✅ Can add custom native modules
 - ✅ Full access to device capabilities
@@ -154,6 +170,7 @@ This app uses **Expo Development Build** instead of Expo Go because:
 ## 🔧 Available Scripts
 
 ### Frontend
+
 - `cd frontend && npm start` - Start the development server with dev client
 - `cd frontend && npm run android` - Build and run on Android
 - `cd frontend && npm run ios` - Build and run on iOS
@@ -165,17 +182,17 @@ This app uses **Expo Development Build** instead of Expo Go because:
 ### Managing Devices
 
 ```tsx
-import { useDevices } from '@/hooks/use-devices';
+import { useDevices } from "@/hooks/use-devices";
 
 function MyComponent() {
   const { devices, loading, addDevice } = useDevices();
 
   const createDevice = async () => {
     await addDevice({
-      name: 'Arduino Uno',
-      type: 'arduino_uno',
-      mac_address: '00:11:22:33:44:55',
-      is_online: true
+      name: "Arduino Uno",
+      type: "arduino_uno",
+      mac_address: "00:11:22:33:44:55",
+      is_online: true,
     });
   };
 
@@ -186,7 +203,7 @@ function MyComponent() {
 ### Real-time Sensor Data
 
 ```tsx
-import { useSensorData } from '@/hooks/use-sensor-data';
+import { useSensorData } from "@/hooks/use-sensor-data";
 
 function SensorDashboard({ deviceId }: { deviceId: string }) {
   const { sensorData, addSensorData } = useSensorData(deviceId);
@@ -194,9 +211,9 @@ function SensorDashboard({ deviceId }: { deviceId: string }) {
   const logTemperature = async (temp: number) => {
     await addSensorData({
       device_id: deviceId,
-      sensor_type: 'temperature',
+      sensor_type: "temperature",
       value: temp,
-      unit: 'C'
+      unit: "C",
     });
   };
 
