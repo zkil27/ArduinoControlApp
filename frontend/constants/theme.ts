@@ -185,10 +185,10 @@ export const BluetoothThresholds = {
 // (percentage of allowed time remaining)
 // ============================================
 export const ProgressColorThresholds = {
-  green: 0.6,   // > 60% remaining
-  blue: 0.3,    // 30-60% remaining
-  pink: 0.1,    // 10-30% remaining
-  // < 10% or overtime = red
+  green: 0.5,   // > 50% remaining
+  blue: 0.15,   // 15-50% remaining
+  pink: 0,      // 0-15% remaining
+  // < 0% or overtime = red
 };
 
 // Helper function to get progress color based on time remaining

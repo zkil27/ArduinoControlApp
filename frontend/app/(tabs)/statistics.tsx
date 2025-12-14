@@ -9,13 +9,13 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View,
 } from 'react-native';
 
 // Log entry type
@@ -308,11 +308,10 @@ export default function StatisticsScreen() {
     disconnect,
     connectedDevice,
   } = useBluetooth();
-  const { sessions, fetchRecentSessions, getTodayStats } = useParkingHistory();
+  const { sessions, fetchRecentSessions, calculateTodayStats } = useParkingHistory();
   const { slots } = useParkingSlots();
   
   const [refreshing, setRefreshing] = useState(false);
-  const [todayStats, setTodayStats] = useState({ sessions: 0, revenue: 0, usageRate: 0 });
   const [systemLogs, setSystemLogs] = useState<LogEntry[]>([]);
   const [btModalVisible, setBtModalVisible] = useState(false);
 
@@ -410,35 +409,26 @@ export default function StatisticsScreen() {
     };
   }, [addLog, slots]);
 
-  // Load data
-  useEffect(() => {
-    const loadData = async () => {
-      await fetchRecentSessions();
-      const stats = await getTodayStats();
-      if (stats) {
-        const usageRate = Math.min(Math.round((stats.total_sessions / 20) * 100), 100);
-        setTodayStats({
-          sessions: stats.total_sessions,
-          revenue: stats.total_revenue,
-          usageRate,
-        });
-      }
+  // Calculate today's stats from cached data (instant, no loading)
+  const todayStats = useMemo(() => {
+    const stats = calculateTodayStats();
+    const usageRate = Math.min(Math.round((stats.total_sessions / 20) * 100), 100);
+    return {
+      sessions: stats.total_sessions,
+      revenue: stats.total_revenue,
+      usageRate,
     };
-    loadData();
-  }, [fetchRecentSessions, getTodayStats]);
+  }, [calculateTodayStats]);
 
+  // Fetch data on mount in background (no loading state)
+  useEffect(() => {
+    fetchRecentSessions();
+  }, [fetchRecentSessions]);
+
+  // Pull-to-refresh handler (keeps data visible during refresh)
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchRecentSessions();
-    const stats = await getTodayStats();
-    if (stats) {
-      const usageRate = Math.min(Math.round((stats.total_sessions / 20) * 100), 100);
-      setTodayStats({
-        sessions: stats.total_sessions,
-        revenue: stats.total_revenue,
-        usageRate,
-      });
-    }
     setRefreshing(false);
   };
 

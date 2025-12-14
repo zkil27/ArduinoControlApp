@@ -12,12 +12,12 @@ import { useBluetooth } from '@/hooks/use-bluetooth';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Platform,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Platform,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -62,7 +62,8 @@ export default function SettingsScreen() {
             scanForDevices();
             setBtModalVisible(true);
           }}
-          onSettingsPress={() => {}} 
+          onSettingsPress={() => router.back()} 
+          isActive={true}
         />
       )}
       
@@ -94,7 +95,11 @@ export default function SettingsScreen() {
         {/* Buttons */}
         <View style={styles.buttonsContainer}>
           {/* Manual Control - White filled */}
-          <TouchableOpacity style={[styles.buttonFilled, styles.buttonWhite]} activeOpacity={0.7}>
+          <TouchableOpacity 
+            style={[styles.buttonFilled, styles.buttonWhite]} 
+            activeOpacity={0.7}
+            onPress={() => router.push('/manual-controls')}
+          >
             <Text style={styles.buttonFilledTextBlack}>MANUAL CONTROL</Text>
           </TouchableOpacity>
           

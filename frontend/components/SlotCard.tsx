@@ -1,5 +1,5 @@
 import { FontFamily } from '@/constants/theme';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CircularProgress } from './CircularProgress';
 
@@ -9,7 +9,7 @@ interface SlotCardProps {
   slotId: string;
   slotName: string;
   status: SlotStatus;
-  elapsedMinutes: number;
+  occupiedSince: string | null; // Changed from elapsedMinutes
   allowedMinutes: number;
   onPress?: (slotId: string) => void;
 }
@@ -25,19 +25,28 @@ function formatDuration(minutes: number): string {
   return `${hours.toString().padStart(2, '0')}h:${mins.toString().padStart(2, '0')}m:${secs.toString().padStart(2, '0')}s`;
 }
 
-export function SlotCard({
+// Memoized component with custom comparison
+export const SlotCard = React.memo(function SlotCard({
   slotId,
   slotName,
   status,
-  elapsedMinutes,
+  occupiedSince,
   allowedMinutes,
   onPress,
 }: SlotCardProps) {
-  const [duration, setDuration] = useState(elapsedMinutes);
+  // Calculate initial elapsed time from occupiedSince
+  const getElapsedMinutes = () => {
+    if (!occupiedSince || (status !== 'occupied' && status !== 'overtime')) {
+      return 0;
+    }
+    return Math.floor((Date.now() - new Date(occupiedSince).getTime()) / (1000 * 60));
+  };
+
+  const [duration, setDuration] = useState(getElapsedMinutes());
   
   // Update duration every second with internal counter
   useEffect(() => {
-    setDuration(elapsedMinutes);
+    setDuration(getElapsedMinutes());
     
     if (status === 'vacant' || status === 'add' || status === 'disabled') {
       return;
@@ -49,83 +58,83 @@ export function SlotCard({
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [elapsedMinutes, status]);
+  }, [occupiedSince, status]); // Changed from elapsedMinutes
   
-  const progress = allowedMinutes > 0 ? Math.min(duration / allowedMinutes, 1) : 0;
-  
-  const getStatusLabel = (): string => {
-    switch (status) {
-      case 'occupied': return 'OCCUPIED';
-      case 'overtime': return 'OVERTIME';
-      case 'vacant': return 'VACANT';
-      case 'disabled': return 'DISABLED';
-      case 'add': return 'ADD PARK';
-      default: return '';
-    }
-  };
-  
-  const getStatusColor = (): string => {
-    switch (status) {
-      case 'occupied': return '#42bc2b'; // Green
-      case 'overtime': return '#ba2d2d'; // Red
-      case 'vacant': return '#444444';   // Gray
-      case 'disabled': return '#d1d1d1ff';
-      case 'add': return '#444444';
-      default: return '#444444';
-    }
-  };
+  // Memoize expensive calculations
+  const statusInfo = useMemo(() => {
+    const getStatusLabel = (): string => {
+      switch (status) {
+        case 'occupied': return 'OCCUPIED';
+        case 'overtime': return 'OVERTIME';
+        case 'vacant': return 'VACANT';
+        case 'disabled': return 'DISABLED';
+        case 'add': return 'ADD PARK';
+        default: return '';
+      }
+    };
+    
+    const getStatusColor = (): string => {
+      switch (status) {
+        case 'occupied': return '#42bc2b'; // Green
+        case 'overtime': return '#ba2d2d'; // Red
+        case 'vacant': return '#444444';   // Gray
+        case 'disabled': return '#d1d1d1ff';
+        case 'add': return '#444444';
+        default: return '#444444';
+      }
+    };
 
-  const getDurationColor = (): string => {
-    if (status === 'vacant' || status === 'add' || status === 'disabled') {
-      return '#444444';
-    }
-    return '#ededed';
-  };
+    const getDurationColor = (): string => {
+      if (status === 'vacant' || status === 'add' || status === 'disabled') {
+        return '#444444';
+      }
+      return '#ededed';
+    };
 
-  const getSlotNameColor = (): string => {
-    if (status === 'vacant' || status === 'add' || status === 'disabled') {
-      return '#444444';
-    }
-    return '#ededed';
-  };
+    const getSlotNameColor = (): string => {
+      if (status === 'vacant' || status === 'add' || status === 'disabled') {
+        return '#444444';
+      }
+      return '#ededed';
+    };
+
+    const getBorderColor = (): string => {
+      if (status === 'disabled') {
+        return '#ba2d2d'; // Red for disabled
+      }
+      return '#272727'; // Default border color
+    };
+    
+    return {
+      label: getStatusLabel(),
+      color: getStatusColor(),
+      durationColor: getDurationColor(),
+      nameColor: getSlotNameColor(),
+      borderColor: getBorderColor(),
+    };
+  }, [status]);
+  
+  const progress = useMemo(() => {
+    return allowedMinutes > 0 ? Math.min(duration / allowedMinutes, 1) : 0;
+  }, [duration, allowedMinutes]);
   
   const handlePress = () => {
     onPress?.(slotId);
   };
-  
-  // Placeholder card for "ADD SLOT"
-  if (status === 'add') {
-    return (
-      <TouchableOpacity 
-        style={styles.card} 
-        onPress={handlePress}
-        activeOpacity={0.7}
-      >
-        <View style={styles.header}>
-          <Text style={[styles.slotName, { color: getSlotNameColor() }]}>--</Text>
-          <Text style={[styles.statusLabel, { color: '#444444' }]}>ADD SLOT</Text>
-        </View>
-        <View style={styles.progressContainer}>
-          <CircularProgress
-            size={80}
-            progress={0}
-            isVacant={true}
-          />
-        </View>
-      </TouchableOpacity>
-    );
-  }
+
+  // Calculate display time: Elapsed Time (Counting Up)
+  const displayTime = formatDuration(duration);
   
   return (
     <TouchableOpacity 
-      style={styles.card} 
+      style={[styles.card, { borderColor: statusInfo.borderColor }]} 
       onPress={handlePress}
       activeOpacity={0.7}
     >
       <View style={styles.header}>
-        <Text style={[styles.slotName, { color: getSlotNameColor() }]}>{slotName}</Text>
-        <Text style={[styles.statusLabel, { color: getStatusColor() }]}>
-          {getStatusLabel()}
+        <Text style={[styles.slotName, { color: statusInfo.nameColor }]}>{slotName}</Text>
+        <Text style={[styles.statusLabel, { color: statusInfo.color }]}>
+          {statusInfo.label}
         </Text>
       </View>
       
@@ -135,15 +144,25 @@ export function SlotCard({
           progress={progress}
           isOvertime={status === 'overtime'}
           isVacant={status === 'vacant'}
+          isDisabled={status === 'disabled'}
         />
       </View>
       
-      <Text style={[styles.duration, { color: getDurationColor() }]}>
-        {formatDuration(duration)}
+      <Text style={[styles.duration, { color: statusInfo.durationColor }]}>
+        {displayTime}
       </Text>
     </TouchableOpacity>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison function - only re-render if these props change
+  return (
+    prevProps.status === nextProps.status &&
+    prevProps.slotName === nextProps.slotName &&
+    prevProps.allowedMinutes === nextProps.allowedMinutes &&
+    prevProps.occupiedSince === nextProps.occupiedSince && // Changed from elapsedMinutes
+    prevProps.onPress === nextProps.onPress
+  );
+});
 
 const styles = StyleSheet.create({
   card: {
@@ -192,3 +211,4 @@ const styles = StyleSheet.create({
 });
 
 export default SlotCard;
+

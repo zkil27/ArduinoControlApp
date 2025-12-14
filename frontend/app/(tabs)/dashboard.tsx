@@ -6,22 +6,22 @@ import { WebHeader } from '@/components/WebHeader';
 import { Colors, FontFamily, FontSizes, Spacing } from '@/constants/theme';
 import { useBluetooth } from '@/hooks/use-bluetooth';
 import {
-  useDeviceCommands,
-  useDeviceStatus,
-  useParkingSlots,
-  useSlotDetails
+    useDeviceCommands,
+    useDeviceStatus,
+    useParkingSlots,
+    useSlotDetails
 } from '@/hooks/use-parking';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View
+    ActivityIndicator,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 
 export default function DashboardScreen() {
@@ -137,7 +137,7 @@ export default function DashboardScreen() {
     };
   }, [selectedSlot, selectedSlotSensorData]);
 
-  // Loading state
+  // Loading state - only shown if fetch takes > 200ms
   if (loading && !refreshing) {
     return (
       <View style={styles.container}>
@@ -145,6 +145,7 @@ export default function DashboardScreen() {
         <BluetoothHeader
           rssi={btRssi}
           isConnected={btConnected}
+          onSettingsPress={() => router.push('/settings')}
         />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -154,14 +155,15 @@ export default function DashboardScreen() {
     );
   }
 
-  // Error state
-  if (error) {
+  // Error state - only show if there are no slots to display
+  if (error && slots.length === 0) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
         <BluetoothHeader
           rssi={btRssi}
           isConnected={btConnected}
+          onSettingsPress={() => router.push('/settings')}
         />
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>Error loading slots</Text>
@@ -172,10 +174,7 @@ export default function DashboardScreen() {
   }
 
   // Separate slots into regular and placeholder
-  const regularSlots = slots.filter(s => !s.is_placeholder);
-  const addSlot = slots.find(s => s.is_placeholder);
-  
-  // Check if we're on web for responsive layout
+  const regularSlots = slots; // Showing all valid slots
   const isWeb = Platform.OS === 'web';
 
   return (
@@ -233,14 +232,7 @@ export default function DashboardScreen() {
           {regularSlots.map((slot) => {
             const slotStatus = slot.slot_status;
             const status: SlotStatus = slotStatus?.status || 'vacant';
-            const occupiedSince = slotStatus?.occupied_since;
-            
-            let elapsedMinutes = 0;
-            if (occupiedSince && (status === 'occupied' || status === 'overtime')) {
-              elapsedMinutes = Math.floor(
-                (Date.now() - new Date(occupiedSince).getTime()) / (1000 * 60)
-              );
-            }
+            const occupiedSince = slotStatus?.occupied_since || null;
             
             return (
               <SlotCard
@@ -248,28 +240,12 @@ export default function DashboardScreen() {
                 slotId={slot.id}
                 slotName={slot.name}
                 status={status}
-                elapsedMinutes={elapsedMinutes}
+                occupiedSince={occupiedSince}
                 allowedMinutes={slot.allowed_minutes}
                 onPress={handleCardPress}
               />
             );
           })}
-          
-          {/* Add Slot placeholder */}
-          {addSlot && (
-            <SlotCard
-              key={addSlot.id}
-              slotId={addSlot.id}
-              slotName={addSlot.name}
-              status="add"
-              elapsedMinutes={0}
-              allowedMinutes={0}
-              onPress={() => {
-                // TODO: Implement add slot functionality
-                console.log('Add new parking slot');
-              }}
-            />
-          )}
         </View>
       </ScrollView>
       

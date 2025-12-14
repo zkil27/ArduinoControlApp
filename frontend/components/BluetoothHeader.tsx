@@ -8,6 +8,7 @@ interface BluetoothHeaderProps {
   isConnected: boolean;
   onSettingsPress?: () => void;
   onStatusPress?: () => void;
+  isActive?: boolean;
 }
 
 export function BluetoothHeader({
@@ -15,6 +16,7 @@ export function BluetoothHeader({
   isConnected,
   onSettingsPress,
   onStatusPress,
+  isActive = false,
 }: BluetoothHeaderProps) {
   const { label, color } = getBluetoothStatus(rssi, isConnected);
   const insets = useSafeAreaInsets();
@@ -32,7 +34,10 @@ export function BluetoothHeader({
       
       <TouchableOpacity style={styles.settingsButton} onPress={onSettingsPress}>
         <View style={styles.settingsIcon}>
-          <Text style={styles.settingsIconText}>⚙</Text>
+          <Text style={[
+            styles.settingsIconText,
+            isActive && { color: Colors.accentGreen }
+          ]}>⚙</Text>
         </View>
       </TouchableOpacity>
     </View>
