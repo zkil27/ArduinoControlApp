@@ -1,6 +1,6 @@
 import { FontFamily } from '@/constants/theme';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CircularProgress } from './CircularProgress';
 
 export type SlotStatus = 'occupied' | 'overtime' | 'vacant' | 'disabled' | 'add';
@@ -16,6 +16,7 @@ interface SlotCardProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 const cardWidth = (screenWidth - 30) / 2; // 10px padding on each side + 10px gap
+const isWeb = Platform.OS === 'web';
 
 function formatDuration(minutes: number): string {
   const hours = Math.floor(minutes / 60);
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     borderWidth: 1,
     borderColor: '#272727',
-    width: cardWidth,
+    width: isWeb ? 180 : cardWidth,
     height: 237,
     paddingTop: 20,
     paddingLeft: 12,

@@ -1,11 +1,15 @@
+import { BluetoothDeviceModal } from '@/components/BluetoothDeviceModal';
 import { BluetoothHeader } from '@/components/BluetoothHeader';
+import { WebHeader } from '@/components/WebHeader';
 import { Colors, FontFamily } from '@/constants/theme';
 import { useBluetooth } from '@/hooks/use-bluetooth';
 import { useParkingSlots } from '@/hooks/use-parking';
 import { ParkingSession, useParkingHistory } from '@/hooks/use-parking-history';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Platform,
   RefreshControl,
   ScrollView,
   StatusBar,
@@ -292,13 +296,25 @@ function SystemLogs({
 }
 
 export default function StatisticsScreen() {
-  const { isConnected: btConnected, rssi: btRssi } = useBluetooth();
+  const router = useRouter();
+  const { 
+    isConnected: btConnected, 
+    rssi: btRssi,
+    availableDevices,
+    isScanning,
+    error: btError,
+    scanForDevices,
+    connectToDevice,
+    disconnect,
+    connectedDevice,
+  } = useBluetooth();
   const { sessions, fetchRecentSessions, getTodayStats } = useParkingHistory();
   const { slots } = useParkingSlots();
   
   const [refreshing, setRefreshing] = useState(false);
   const [todayStats, setTodayStats] = useState({ sessions: 0, revenue: 0, usageRate: 0 });
   const [systemLogs, setSystemLogs] = useState<LogEntry[]>([]);
+  const [btModalVisible, setBtModalVisible] = useState(false);
 
   // Add a new log entry
   const addLog = useCallback((type: LogEntry['type'], message: string) => {
@@ -429,11 +445,44 @@ export default function StatisticsScreen() {
   // Get last 4 sessions for display
   const recentSessions = sessions.slice(0, 4);
 
+  // Check if we're on web
+  const isWeb = Platform.OS === 'web';
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       
-      <BluetoothHeader rssi={btRssi} isConnected={btConnected} />
+      {/* Show WebHeader on web, BluetoothHeader on mobile */}
+      {isWeb ? (
+        <WebHeader 
+          title="STATISTICS" 
+          isConnected={btConnected} 
+          rssi={btRssi} 
+        />
+      ) : (
+        <BluetoothHeader 
+          rssi={btRssi} 
+          isConnected={btConnected}
+          onStatusPress={() => {
+            scanForDevices();
+            setBtModalVisible(true);
+          }}
+          onSettingsPress={() => router.push('/settings')}
+        />
+      )}
+      
+      {/* Bluetooth Device Selection Modal */}
+      <BluetoothDeviceModal
+        visible={btModalVisible}
+        onClose={() => setBtModalVisible(false)}
+        devices={availableDevices}
+        connectedDevice={connectedDevice}
+        isScanning={isScanning}
+        onScan={scanForDevices}
+        onConnect={connectToDevice}
+        onDisconnect={disconnect}
+        error={btError}
+      />
       
       <ScrollView
         style={styles.scrollView}
@@ -698,5 +747,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#1f4fce',
     lineHeight: 14,
+  },
+  timeIndicatorContainer: {
+    height: 4,
+    marginTop: 4,
+  },
+  timeIndicatorLine: {
+    height: 4,
+    backgroundColor: '#d41f7c',
   },
 });

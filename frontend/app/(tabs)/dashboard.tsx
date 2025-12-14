@@ -1,6 +1,8 @@
+import { BluetoothDeviceModal } from '@/components/BluetoothDeviceModal';
 import { BluetoothHeader } from '@/components/BluetoothHeader';
 import { SlotCard, SlotStatus } from '@/components/SlotCard';
 import { SlotDetailsModal } from '@/components/SlotDetailsModal';
+import { WebHeader } from '@/components/WebHeader';
 import { Colors, FontFamily, FontSizes, Spacing } from '@/constants/theme';
 import { useBluetooth } from '@/hooks/use-bluetooth';
 import {
@@ -9,18 +11,21 @@ import {
   useParkingSlots,
   useSlotDetails
 } from '@/hooks/use-parking';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   RefreshControl,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  View,
+  View
 } from 'react-native';
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const { slots, loading, error, refresh } = useParkingSlots();
   const { status: deviceStatus } = useDeviceStatus();
   const { sendPingCommand, sendDisableCommand, loading: commandLoading } = useDeviceCommands();
@@ -32,11 +37,19 @@ export default function DashboardScreen() {
     pingSlot,
     disableSlot,
     slots: btSlots,
+    availableDevices,
+    isScanning,
+    error: btError,
+    scanForDevices,
+    connectToDevice,
+    disconnect,
+    connectedDevice,
   } = useBluetooth();
   
   const [refreshing, setRefreshing] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [btModalVisible, setBtModalVisible] = useState(false);
   
   const { 
     slot: selectedSlot, 
@@ -161,14 +174,44 @@ export default function DashboardScreen() {
   // Separate slots into regular and placeholder
   const regularSlots = slots.filter(s => !s.is_placeholder);
   const addSlot = slots.find(s => s.is_placeholder);
+  
+  // Check if we're on web for responsive layout
+  const isWeb = Platform.OS === 'web';
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       
-      <BluetoothHeader
-        rssi={btRssi}
-        isConnected={btConnected}
+      {/* Show WebHeader on web, BluetoothHeader on mobile */}
+      {isWeb ? (
+        <WebHeader 
+          title="DASHBOARD" 
+          isConnected={btConnected} 
+          rssi={btRssi} 
+        />
+      ) : (
+        <BluetoothHeader
+          rssi={btRssi}
+          isConnected={btConnected}
+          onStatusPress={() => {
+            scanForDevices();
+            setBtModalVisible(true);
+          }}
+          onSettingsPress={() => router.push('/settings')}
+        />
+      )}
+      
+      {/* Bluetooth Device Selection Modal */}
+      <BluetoothDeviceModal
+        visible={btModalVisible}
+        onClose={() => setBtModalVisible(false)}
+        devices={availableDevices}
+        connectedDevice={connectedDevice}
+        isScanning={isScanning}
+        onScan={scanForDevices}
+        onConnect={connectToDevice}
+        onDisconnect={disconnect}
+        error={btError}
       />
       
       <ScrollView
@@ -292,5 +335,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    alignContent: 'flex-start',
   },
 });

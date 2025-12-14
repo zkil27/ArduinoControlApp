@@ -7,22 +7,28 @@ interface BluetoothHeaderProps {
   rssi: number | null;
   isConnected: boolean;
   onSettingsPress?: () => void;
+  onStatusPress?: () => void;
 }
 
 export function BluetoothHeader({
   rssi,
   isConnected,
   onSettingsPress,
+  onStatusPress,
 }: BluetoothHeaderProps) {
   const { label, color } = getBluetoothStatus(rssi, isConnected);
   const insets = useSafeAreaInsets();
   
   return (
     <View style={[styles.container, { paddingTop: insets.top + Spacing.sm }]}>
-      <View style={styles.statusContainer}>
+      <TouchableOpacity 
+        style={styles.statusContainer} 
+        onPress={onStatusPress}
+        activeOpacity={0.7}
+      >
         <Text style={styles.label}>Bluetooth Status: </Text>
         <Text style={[styles.status, { color }]}>{label}</Text>
-      </View>
+      </TouchableOpacity>
       
       <TouchableOpacity style={styles.settingsButton} onPress={onSettingsPress}>
         <View style={styles.settingsIcon}>
@@ -60,17 +66,12 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
   },
   settingsIcon: {
-    width: 28,
-    height: 28,
-    borderWidth: 2,
-    borderColor: Colors.textPrimary,
-    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
   settingsIconText: {
     color: Colors.textPrimary,
-    fontSize: FontSizes.md,
+    fontSize: 22,
   },
 });
 

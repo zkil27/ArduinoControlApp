@@ -1,4 +1,5 @@
 import { BillingConfig, FontFamily } from '@/constants/theme';
+import { BlurView } from 'expo-blur';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -141,12 +142,13 @@ export function SlotDetailsModal({
       animationType="none"
       onRequestClose={onClose}
     >
-      <TouchableOpacity 
-        style={styles.overlay} 
-        activeOpacity={1} 
-        onPress={onClose}
-      >
-        <TouchableOpacity activeOpacity={1} style={styles.modal}>
+      <BlurView intensity={50} tint="dark" style={styles.blurContainer}>
+        <TouchableOpacity 
+          style={styles.overlay} 
+          activeOpacity={1} 
+          onPress={onClose}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.modal}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.slotName}>{slotName}</Text>
@@ -222,14 +224,18 @@ export function SlotDetailsModal({
           </View>
         </TouchableOpacity>
       </TouchableOpacity>
+      </BlurView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  blurContainer: {
+    flex: 1,
+  },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(18, 18, 18, 0.85)',
+    backgroundColor: 'rgba(18, 18, 18, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
