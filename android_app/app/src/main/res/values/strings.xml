@@ -1,4 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ParkSense</string>
+    
+    <!-- Bluetooth Dialog -->
+    <string name="bluetooth_devices_title">Available Bluetooth Devices</string>
+    <string name="bluetooth_scan">Scan for Devices</string>
+    <string name="bluetooth_stop_scan">Stop Scanning</string>
+    <string name="bluetooth_scanning">Scanning…</string>
+    <string name="bluetooth_no_devices">No devices found</string>
+    <string name="bluetooth_paired">Paired</string>
+    <string name="bluetooth_connect">Connect</string>
+    <string name="bluetooth_disconnect">Disconnect</string>
+    <string name="bluetooth_cancel">Cancel</string>
+    
+    <!-- Bluetooth Permissions -->
+    <string name="bluetooth_permission_required">Bluetooth Permission Required</string>
+    <string name="bluetooth_permission_rationale">This app needs Bluetooth permission to connect to the HC-05 module for parking slot monitoring.</string>
+    <string name="bluetooth_location_permission_rationale">Location permission is required to scan for Bluetooth devices on Android 12 and above.</string>
+    
+    <!-- Bluetooth Errors -->
+    <string name="bluetooth_not_supported">Bluetooth is not supported on this device</string>
+    <string name="bluetooth_not_enabled">Please enable Bluetooth to continue</string>
+    <string name="bluetooth_connection_failed">Failed to connect to device</string>
+    <string name="bluetooth_connection_lost">Bluetooth connection lost</string>
+    
+    <!-- Slot Details Dialog -->
+    <string name="slot_details_since">Since:</string>
+    <string name="slot_details_billing">Billing:</string>
+    <string name="slot_details_sensor_data">Sensor Data:</string>
+    <string name="slot_details_enable">ENABLE</string>
+    <string name="slot_details_disable">DISABLE</string>
+    <string name="slot_details_ping">PING</string>
+    <string name="slot_details_today">Today</string>
 </resources>
+

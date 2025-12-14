@@ -131,12 +131,9 @@ export const SlotCard = React.memo(function SlotCard({
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <View style={styles.header}>
-        <Text style={[styles.slotName, { color: statusInfo.nameColor }]}>{slotName}</Text>
-        <Text style={[styles.statusLabel, { color: statusInfo.color }]}>
-          {statusInfo.label}
-        </Text>
-      </View>
+      <Text style={[styles.statusLabel, { color: statusInfo.color }]}>
+        {statusInfo.label}
+      </Text>
       
       <View style={styles.progressContainer}>
         <CircularProgress
@@ -151,6 +148,8 @@ export const SlotCard = React.memo(function SlotCard({
       <Text style={[styles.duration, { color: statusInfo.durationColor }]}>
         {displayTime}
       </Text>
+      
+      <Text style={[styles.slotName, { color: statusInfo.nameColor }]}>{slotName}</Text>
     </TouchableOpacity>
   );
 }, (prevProps, nextProps) => {
@@ -173,33 +172,27 @@ const styles = StyleSheet.create({
     width: isWeb ? 180 : cardWidth,
     height: 237,
     paddingTop: 20,
-    paddingLeft: 12,
-    paddingHorizontal: 4,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 0,
+    paddingBottom: 16,
+    paddingHorizontal: 12,
   },
   slotName: {
     color: '#ededed',
     fontFamily: FontFamily.mono,
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '400',
-    position: 'absolute',
+    textAlign: 'center',
+    marginTop: 8,
   },
   statusLabel: {
     fontFamily: FontFamily.mono,
     fontSize: 16,
     fontWeight: '400',
-    flex: 1,
     textAlign: 'center',
     letterSpacing: 2,
   },
   progressContainer: {
     alignItems: 'center',
-    marginTop: 26,
+    marginTop: 16,
   },
   duration: {
     fontFamily: FontFamily.mono,

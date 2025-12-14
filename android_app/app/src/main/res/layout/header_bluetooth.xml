@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bluetoothHeaderLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#0a0909"
+    android:background="@drawable/bluetooth_header_background"
     android:orientation="horizontal"
     android:padding="12dp"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:clickable="true"
+    android:focusable="true">
 
     <!-- Left side: Bluetooth Status -->
     <LinearLayout

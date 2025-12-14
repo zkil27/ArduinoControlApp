@@ -13,47 +13,30 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="237dp"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="16dp"
+        android:gravity="center_horizontal">
 
-        <!-- Header: Slot Name + Status -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <!-- Status Label at Top -->
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:text="VACANT"
+            android:textColor="#444444"
+            android:textSize="14sp"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.15"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="12dp" />
 
-            <TextView
-                android:id="@+id/slotNameText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="P1"
-                android:textColor="#ededed"
-                android:textSize="14sp"
-                android:fontFamily="monospace" />
-
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="VACANT"
-                android:textColor="#444444"
-                android:textSize="12sp"
-                android:fontFamily="monospace"
-                android:letterSpacing="0.1" />
-
-        </LinearLayout>
-
-        <!-- Circular Progress Placeholder -->
-        <View
+        <!-- Circular Progress -->
+        <com.parksense.android.ui.views.CircularProgressView
+            android:id="@+id/circularProgress"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/circular_progress_bg" />
+            android:layout_gravity="center" />
 
         <!-- Timer -->
         <TextView
@@ -64,6 +47,19 @@
             android:text="00h:00m:00s"
             android:textColor="#ededed"
             android:textSize="13sp"
+            android:fontFamily="monospace"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Slot Name at Bottom -->
+        <TextView
+            android:id="@+id/slotNameText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="P1"
+            android:textColor="#ededed"
+            android:textSize="18sp"
             android:fontFamily="monospace" />
 
     </LinearLayout>
