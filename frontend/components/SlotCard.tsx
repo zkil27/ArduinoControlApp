@@ -68,14 +68,21 @@ export function SlotCard({
       case 'occupied': return '#42bc2b'; // Green
       case 'overtime': return '#ba2d2d'; // Red
       case 'vacant': return '#444444';   // Gray
-      case 'disabled': return '#444444';
+      case 'disabled': return '#d1d1d1ff';
       case 'add': return '#444444';
       default: return '#444444';
     }
   };
 
   const getDurationColor = (): string => {
-    if (status === 'vacant' || status === 'add') {
+    if (status === 'vacant' || status === 'add' || status === 'disabled') {
+      return '#444444';
+    }
+    return '#ededed';
+  };
+
+  const getSlotNameColor = (): string => {
+    if (status === 'vacant' || status === 'add' || status === 'disabled') {
       return '#444444';
     }
     return '#ededed';
@@ -94,7 +101,7 @@ export function SlotCard({
         activeOpacity={0.7}
       >
         <View style={styles.header}>
-          <Text style={styles.slotName}>--</Text>
+          <Text style={[styles.slotName, { color: getSlotNameColor() }]}>--</Text>
           <Text style={[styles.statusLabel, { color: '#444444' }]}>ADD SLOT</Text>
         </View>
         <View style={styles.progressContainer}>
@@ -115,7 +122,7 @@ export function SlotCard({
       activeOpacity={0.7}
     >
       <View style={styles.header}>
-        <Text style={styles.slotName}>{slotName}</Text>
+        <Text style={[styles.slotName, { color: getSlotNameColor() }]}>{slotName}</Text>
         <Text style={[styles.statusLabel, { color: getStatusColor() }]}>
           {getStatusLabel()}
         </Text>

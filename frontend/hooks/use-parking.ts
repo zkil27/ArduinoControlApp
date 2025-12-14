@@ -352,10 +352,13 @@ export function useDeviceCommands() {
 
       if (slotError) throw slotError;
 
-      // Update slot_status
+      // Update slot_status - clear occupied_since when disabling
       const { error: statusError } = await supabase
         .from('slot_status')
-        .update({ status: disable ? 'disabled' : 'vacant' })
+        .update({ 
+          status: disable ? 'disabled' : 'vacant',
+          occupied_since: null,  // Clear the timer
+        })
         .eq('slot_id', slotId);
 
       if (statusError) throw statusError;

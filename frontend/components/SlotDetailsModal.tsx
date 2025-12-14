@@ -85,7 +85,7 @@ export function SlotDetailsModal({
   
   // Update duration every second when modal is visible
   useEffect(() => {
-    if (!visible || status === 'vacant' || status === 'add') {
+    if (!visible || status === 'vacant' || status === 'add' || status === 'disabled' || isDisabled) {
       return;
     }
     
@@ -94,7 +94,7 @@ export function SlotDetailsModal({
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [visible, status]);
+  }, [visible, status, isDisabled]);
   
   const duration = formatDuration(currentElapsed);
   const billing = useMemo(() => calculateBilling(currentElapsed), [currentElapsed]);
@@ -201,11 +201,11 @@ export function SlotDetailsModal({
           {/* Actions */}
           <View style={styles.actions}>
             <HoldToConfirmButton
-              label={isDisabled ? 'ENABLE' : 'DISABLE'}
-              holdDuration={5000}
+              label={(isDisabled || status === 'disabled') ? 'ENABLE' : 'DISABLE'}
+              holdDuration={2000}
               onConfirm={handleDisable}
               disabled={commandLoading}
-              variant="danger"
+              variant={(isDisabled || status === 'disabled') ? 'primary' : 'danger'}
             />
             
             <TouchableOpacity

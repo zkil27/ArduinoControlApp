@@ -72,16 +72,31 @@ export default function DashboardScreen() {
     }
   }, [selectedSlot, pingSlot]);
 
-  // Handle Disable Slot command - sends via Bluetooth
+  // Handle Disable Slot command - sends via Bluetooth AND updates database
   const handleDisable = useCallback(async () => {
     if (selectedSlot) {
       const slotName = selectedSlot.name;
+      const slotId = selectedSlot.id;
       const currentlyDisabled = selectedSlot.is_disabled;
       console.log(`Sending ${currentlyDisabled ? 'ENABLE' : 'DISABLE'} command for:`, slotName);
-      await disableSlot(slotName, !currentlyDisabled);
-      handleModalClose();
+      
+      try {
+        // Send Bluetooth command to Arduino
+        const btResult = await disableSlot(slotName, !currentlyDisabled);
+        console.log('Bluetooth command result:', btResult);
+        
+        // Update database
+        const dbResult = await sendDisableCommand(slotId, !currentlyDisabled);
+        console.log('Database update result:', dbResult);
+        
+        handleModalClose();
+      } catch (err) {
+        console.error('Error in handleDisable:', err);
+      }
+    } else {
+      console.log('No selected slot for disable command');
     }
-  }, [selectedSlot, disableSlot, handleModalClose]);
+  }, [selectedSlot, disableSlot, sendDisableCommand, handleModalClose]);
 
   // Calculate slot data for modal
   const modalData = useMemo(() => {
