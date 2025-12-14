@@ -67,9 +67,9 @@ export function AboutUsModal({ visible, onClose }: AboutUsModalProps) {
               
               <Text style={styles.sectionTitle}>THE TEAM</Text>
               
-              <Text style={styles.teamMember}>• Lead Developer</Text>
-              <Text style={styles.teamMember}>• UI/UX Designer</Text>
-              <Text style={styles.teamMember}>• Embedded Engineer</Text>
+              <Text style={styles.teamMember}>• Pamela Catacutan</Text>
+              <Text style={styles.teamMember}>• John Ezekiel Escueta</Text>
+              <Text style={styles.teamMember}>• Elijah Job Tamayo</Text>
               
               <TouchableOpacity 
                 style={styles.actionButton}

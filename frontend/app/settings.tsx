@@ -12,12 +12,12 @@ import { useBluetooth } from '@/hooks/use-bluetooth';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Platform,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -124,7 +124,7 @@ export default function SettingsScreen() {
           
           {/* Back - Red filled */}
           <TouchableOpacity 
-            style={[styles.buttonFilled, styles.buttonRed]} 
+            style={[styles.buttonFilled, styles.buttonRed, { marginTop: 200 }]} 
             activeOpacity={0.7}
             onPress={handleBack}
           >
