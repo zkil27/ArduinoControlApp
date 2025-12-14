@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#1a1a1a"
+    android:padding="20dp"
+    android:minWidth="320dp">
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/bluetooth_devices_title"
+        android:textSize="18sp"
+        android:textColor="#ffffff"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Scan Button and Status -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <Button
+            android:id="@+id/btnScan"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="@string/bluetooth_scan"
+            android:textSize="12sp"
+            android:textColor="#ffffff"
+            android:background="@drawable/button_primary"
+            android:fontFamily="monospace"
+            android:textAllCaps="false" />
+
+        <ProgressBar
+            android:id="@+id/progressScanning"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="12dp"
+            android:visibility="gone"
+            android:indeterminateTint="#3dd598" />
+
+        <TextView
+            android:id="@+id/txtScanStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/bluetooth_scanning"
+            android:textSize="12sp"
+            android:textColor="#3dd598"
+            android:fontFamily="monospace"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#2a2a2a"
+        android:layout_marginVertical="8dp" />
+
+    <!-- Device List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerDevices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="120dp"
+        android:maxHeight="300dp"
+        android:scrollbars="vertical" />
+
+    <!-- No Devices Message -->
+    <TextView
+        android:id="@+id/txtNoDevices"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:text="@string/bluetooth_no_devices"
+        android:textSize="14sp"
+        android:textColor="#676767"
+        android:fontFamily="monospace"
+        android:gravity="center"
+        android:visibility="gone" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#2a2a2a"
+        android:layout_marginVertical="8dp" />
+
+    <!-- Cancel Button -->
+    <Button
+        android:id="@+id/btnCancel"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="@string/bluetooth_cancel"
+        android:textSize="12sp"
+        android:textColor="#ba2d2d"
+        android:background="@drawable/button_secondary"
+        android:fontFamily="monospace"
+        android:textAllCaps="false" />
+
+</LinearLayout>

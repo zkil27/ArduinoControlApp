@@ -9,4 +9,5 @@
     <color name="accent_blue">#1e6ed8</color>
     <color name="accent_pink">#d91e9c</color>
     <color name="status_overtime">#ba2d2d</color>
+    <color name="status_occupied">#42bc2b</color>
 </resources>

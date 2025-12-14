@@ -1,76 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bluetoothHeaderLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#0a0909"
     android:orientation="horizontal"
-    android:padding="12dp"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp"
+    android:background="#121212"
     android:gravity="center_vertical">
 
-    <!-- Left side: Bluetooth Status -->
+    <!-- Bluetooth Status (Left Side, Clickable) -->
     <LinearLayout
+        android:id="@+id/bluetoothStatusContainer"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="wrap_content"  
         android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="BLUETOOTH"
-            android:textColor="#676767"
-            android:textSize="10sp"
-            android:fontFamily="monospace"
-            android:letterSpacing="0.1" />
+            android:text="Bluetooth Status: "
+            android:textColor="#ededed"
+            android:textSize="14sp"
+            android:fontFamily="monospace" />
 
         <TextView
             android:id="@+id/bluetoothStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Disconnected"
-            android:textColor="#ba2d2d"
-            android:textSize="12sp"
+            android:textColor="#444444"
+            android:textSize="14sp"
             android:fontFamily="monospace"
-            android:textStyle="italic"
-            android:layout_marginTop="2dp" />
+            android:textStyle="bold" />
 
     </LinearLayout>
 
-    <!-- Right side: RSSI -->
-    <LinearLayout
+    <!-- Settings Icon (Right Side) -->
+    <TextView
+        android:id="@+id/settingsIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="end">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="RSSI"
-            android:textColor="#676767"
-            android:textSize="10sp"
-            android:fontFamily="monospace"
-            android:letterSpacing="0.1" />
-
-        <TextView
-            android:id="@+id/rssiValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="-- dBm"
-            android:textColor="#676767"
-            android:textSize="12sp"
-            android:fontFamily="monospace"
-            android:layout_marginTop="2dp" />
-
-    </LinearLayout>
-
-    <!-- Settings Icon -->
-    <View
-        android:id="@+id/settingsIcon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="16dp"
-        android:background="@drawable/ic_settings" />
+        android:text="⚙"
+        android:textSize="22sp"
+        android:textColor="#ededed"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground" />
 
 </LinearLayout>
