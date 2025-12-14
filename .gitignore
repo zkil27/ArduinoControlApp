@@ -43,5 +43,5 @@ backend/.env
 app-example
 
 # generated native folders
-/ios
-/android
+frontend/ios
+frontend/android
