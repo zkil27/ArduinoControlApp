@@ -7,4 +7,10 @@
         <item name="android:statusBarColor">#0a0909</item>
         <item name="android:windowBackground">#0a0909</item>
     </style>
+    
+    <!-- Splash Screen Theme (No ActionBar) -->
+    <style name="Theme.ParkSense.Splash" parent="Theme.ParkSense">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>

@@ -1,100 +1,77 @@
 package com.parksense.android
 
 import android.os.Bundle
-import android.view.View
-import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.parksense.android.data.repository.ParkingRepository
-import com.parksense.android.ui.SlotAdapter
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.fragment.app.Fragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.parksense.android.ui.fragments.DashboardFragment
+import com.parksense.android.ui.fragments.SettingsFragment
+import com.parksense.android.ui.fragments.StatisticsFragment
 
 class MainActivity : AppCompatActivity() {
     
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var progressBar: ProgressBar
-    private lateinit var errorText: TextView
-    private lateinit var slotAdapter: SlotAdapter
-    private val repository = ParkingRepository()
+    private lateinit var bluetoothStatusText: TextView
+    private lateinit var rssiText: TextView
+    private lateinit var bottomNav: BottomNavigationView
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         
         setupViews()
-        loadParkingSlots()
-        startAutoRefresh()
+        setupBottomNavigation()
+        
+        // Load default fragment
+        if (savedInstanceState == null) {
+            loadFragment(DashboardFragment())
+        }
     }
     
     private fun setupViews() {
-        recyclerView = findViewById(R.id.recyclerView)
-        swipeRefresh = findViewById(R.id.swipeRefresh)
-        progressBar = findViewById(R.id.progressBar)
-        errorText = findViewById(R.id.errorText)
+        bluetoothStatusText = findViewById(R.id.bluetoothStatus)
+        rssiText = findViewById(R.id.rssiValue)
+        bottomNav = findViewById(R.id.bottomNavigation)
         
-        // Setup RecyclerView with Grid Layout (2 columns)
-        slotAdapter = SlotAdapter()
-        recyclerView.apply {
-            layoutManager = GridLayoutManager(this@MainActivity, 2)
-            adapter = slotAdapter
-        }
-        
-        // Setup swipe-to-refresh
-        swipeRefresh.setOnRefreshListener {
-            loadParkingSlots()
-        }
+        // Set initial Bluetooth status
+        updateBluetoothStatus(false, null)
     }
     
-    private fun loadParkingSlots() {
-        lifecycleScope.launch {
-            try {
-                progressBar.visibility = View.VISIBLE
-                errorText.visibility = View.GONE
-                
-                val result = repository.fetchParkingSlots()
-                
-                result.onSuccess { slots ->
-                    slotAdapter.updateSlots(slots)
-                    recyclerView.visibility = View.VISIBLE
-                    errorText.visibility = View.GONE
-                }.onFailure { error ->
-                    showError("Error: ${error.message}")
+    private fun setupBottomNavigation() {
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_dashboard -> {
+                    loadFragment(DashboardFragment())
+                    true
                 }
-                
-            } catch (e: Exception) {
-                showError("Failed to load parking slots")
-            } finally {
-                progressBar.visibility = View.GONE
-                swipeRefresh.isRefreshing = false
+                R.id.nav_statistics -> {
+                    loadFragment(StatisticsFragment())
+                    true
+                }
+                R.id.nav_settings -> {
+                    loadFragment(SettingsFragment())
+                    true
+                }
+                else -> false
             }
         }
     }
     
-    private fun showError(message: String) {
-        errorText.text = message
-        errorText.visibility = View.VISIBLE
-        recyclerView.visibility = View.GONE
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    private fun loadFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
     }
     
-    // Auto-refresh every 5 seconds to simulate real-time updates
-    private fun startAutoRefresh() {
-        lifecycleScope.launch {
-            while (true) {
-                delay(5000) // 5 seconds
-                if (!swipeRefresh.isRefreshing) {
-                    repository.fetchParkingSlots().onSuccess { slots ->
-                        slotAdapter.updateSlots(slots)
-                    }
-                }
-            }
+    private fun updateBluetoothStatus(isConnected: Boolean, rssi: Int?) {
+        if (isConnected) {
+            bluetoothStatusText.text = "Connected"
+            bluetoothStatusText.setTextColor(getColor(R.color.accent_green))
+            rssiText.text = "${rssi ?: "--"} dBm"
+        } else {
+            bluetoothStatusText.text = "Disconnected"
+            bluetoothStatusText.setTextColor(getColor(R.color.status_overtime))
+            rssiText.text = "-- dBm"
         }
     }
 }
