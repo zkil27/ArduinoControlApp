@@ -49,11 +49,16 @@ class MainActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Enable Edge-to-Edge
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        
         setContentView(R.layout.activity_main)
         
         bluetoothManager = BluetoothManager(this)
         
         setupViews()
+        setupWindowInsets()
         setupBottomNavigation()
         
         // Load default fragment
@@ -63,6 +68,23 @@ class MainActivity : AppCompatActivity() {
         
         // Check initial Bluetooth status
         updateBluetoothStatus()
+    }
+    
+    private fun setupWindowInsets() {
+        val bluetoothHeader = findViewById<View>(R.id.bluetoothHeaderLayout)
+        val initialPaddingTop = bluetoothHeader.paddingTop
+        
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(bluetoothHeader) { view, windowInsets ->
+            val insets = windowInsets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            // Add top inset to INITIAL padding (prevents cumulative growth)
+            view.setPadding(
+                view.paddingLeft,
+                initialPaddingTop + insets.top,
+                view.paddingRight,
+                view.paddingBottom
+            )
+            androidx.core.view.WindowInsetsCompat.CONSUMED
+        }
     }
     
     private fun setupViews() {

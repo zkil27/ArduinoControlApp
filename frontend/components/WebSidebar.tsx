@@ -120,30 +120,38 @@ export function WebSidebar() {
         
         <Pressable 
           style={styles.toolButton}
-          onPress={() => console.log('Manual Control')}
+          onPress={() => router.push('/manual-controls' as any)}
         >
-          <Text style={styles.toolButtonText}>MANUAL CONTROL</Text>
+          {({ hovered }: { hovered: boolean }) => (
+            <Text style={[styles.toolButtonText, hovered && styles.toolButtonTextHover]}>MANUAL CONTROL</Text>
+          )}
         </Pressable>
 
         <Pressable 
           style={styles.toolButton}
           onPress={() => console.log('Dev Mode')}
         >
-          <Text style={styles.toolButtonText}>DEV MODE</Text>
+          {({ hovered }: { hovered: boolean }) => (
+            <Text style={[styles.toolButtonText, hovered && styles.toolButtonTextHover]}>DEV MODE</Text>
+          )}
         </Pressable>
 
         <Pressable 
           style={styles.toolButton}
           onPress={() => console.log('Export Stats')}
         >
-          <Text style={styles.toolButtonText}>EXPORT STATS</Text>
+          {({ hovered }: { hovered: boolean }) => (
+            <Text style={[styles.toolButtonText, hovered && styles.toolButtonTextHover]}>EXPORT STATS</Text>
+          )}
         </Pressable>
 
         <Pressable 
           style={styles.toolButton}
           onPress={() => setAboutModalVisible(true)}
         >
-          <Text style={styles.toolButtonText}>ABOUT US</Text>
+          {({ hovered }: { hovered: boolean }) => (
+            <Text style={[styles.toolButtonText, hovered && styles.toolButtonTextHover]}>ABOUT US</Text>
+          )}
         </Pressable>
       </View>
       
@@ -227,6 +235,9 @@ const styles = StyleSheet.create({
     fontSize: 11, // Slightly smaller than main nav
     color: Colors.textSecondary,
     letterSpacing: 1,
+  },
+  toolButtonTextHover: {
+    color: Colors.textPrimary, // Lighter color (#ededed) on hover
   },
   navSlider: {
     position: 'absolute',
