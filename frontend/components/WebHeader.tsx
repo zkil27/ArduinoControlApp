@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.cardBackground,
+    marginBottom: Spacing.md,
   },
   title: {
     fontFamily: FontFamily.mono,

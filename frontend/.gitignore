@@ -11,3 +11,7 @@ node_modules/
 # Generated native folders
 ios/
 android/
+
+# Web build output
+dist/
+web-build/

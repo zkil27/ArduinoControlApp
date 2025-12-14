@@ -3,13 +3,16 @@
  * Green-themed settings page with placeholder buttons
  */
 
+import { AboutUsModal } from '@/components/AboutUsModal';
 import { BluetoothDeviceModal } from '@/components/BluetoothDeviceModal';
 import { BluetoothHeader } from '@/components/BluetoothHeader';
+import { WebHeader } from '@/components/WebHeader';
 import { Colors, FontFamily, Spacing } from '@/constants/theme';
 import { useBluetooth } from '@/hooks/use-bluetooth';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Platform,
   StatusBar,
   StyleSheet,
   Text,
@@ -34,6 +37,7 @@ export default function SettingsScreen() {
   } = useBluetooth();
   
   const [btModalVisible, setBtModalVisible] = useState(false);
+  const [aboutModalVisible, setAboutModalVisible] = useState(false);
   
   const handleBack = () => {
     router.back();
@@ -43,16 +47,24 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
       
-      {/* BluetoothHeader with green gear icon styling */}
-      <BluetoothHeader
-        rssi={btRssi}
-        isConnected={btConnected}
-        onStatusPress={() => {
-          scanForDevices();
-          setBtModalVisible(true);
-        }}
-        onSettingsPress={() => {}} // Already on settings, do nothing
-      />
+      {/* Header - Adaptive for Web/Mobile */}
+      {Platform.OS === 'web' ? (
+        <WebHeader 
+          title="SETTINGS" 
+          isConnected={btConnected} 
+          rssi={btRssi} 
+        />
+      ) : (
+        <BluetoothHeader
+          rssi={btRssi}
+          isConnected={btConnected}
+          onStatusPress={() => {
+            scanForDevices();
+            setBtModalVisible(true);
+          }}
+          onSettingsPress={() => {}} 
+        />
+      )}
       
       {/* Bluetooth Device Selection Modal */}
       <BluetoothDeviceModal
@@ -67,47 +79,61 @@ export default function SettingsScreen() {
         error={btError}
       />
       
-      {/* Title */}
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>ADDITIONAL SETTINGS</Text>
+      <AboutUsModal 
+        visible={aboutModalVisible} 
+        onClose={() => setAboutModalVisible(false)} 
+      />
+      
+      {/* Content Container - for Web responsiveness */}
+      <View style={Platform.OS === 'web' ? styles.webContent : { flex: 1 }}>
+        {/* Title */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>ADDITIONAL SETTINGS</Text>
+        </View>
+        
+        {/* Buttons */}
+        <View style={styles.buttonsContainer}>
+          {/* Manual Control - White filled */}
+          <TouchableOpacity style={[styles.buttonFilled, styles.buttonWhite]} activeOpacity={0.7}>
+            <Text style={styles.buttonFilledTextBlack}>MANUAL CONTROL</Text>
+          </TouchableOpacity>
+          
+          {/* Dev Mode - Blue filled */}
+          <TouchableOpacity style={[styles.buttonFilled, styles.buttonBlue]} activeOpacity={0.7}>
+            <Text style={styles.buttonFilledTextBlack}>DEV MODE</Text>
+          </TouchableOpacity>
+          
+          {/* Export Statistics - Green filled */}
+          <TouchableOpacity style={[styles.buttonFilled, styles.buttonGreen]} activeOpacity={0.7}>
+            <Text style={styles.buttonFilledTextBlack}>EXPORT STATISTICS</Text>
+          </TouchableOpacity>
+          
+          {/* About Us - Pink filled */}
+          <TouchableOpacity 
+            style={[styles.buttonFilled, styles.buttonPink]} 
+            activeOpacity={0.7}
+            onPress={() => setAboutModalVisible(true)}
+          >
+            <Text style={styles.buttonFilledTextBlack}>ABOUT US</Text>
+          </TouchableOpacity>
+          
+          {/* Back - Red filled */}
+          <TouchableOpacity 
+            style={[styles.buttonFilled, styles.buttonRed]} 
+            activeOpacity={0.7}
+            onPress={handleBack}
+          >
+            <Text style={styles.buttonFilledTextBlack}>BACK</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
-      {/* Buttons */}
-      <View style={styles.buttonsContainer}>
-        {/* Manual Control - White filled */}
-        <TouchableOpacity style={[styles.buttonFilled, styles.buttonWhite]} activeOpacity={0.7}>
-          <Text style={styles.buttonFilledTextBlack}>MANUAL CONTROL</Text>
-        </TouchableOpacity>
-        
-        {/* Dev Mode - Blue filled */}
-        <TouchableOpacity style={[styles.buttonFilled, styles.buttonBlue]} activeOpacity={0.7}>
-          <Text style={styles.buttonFilledTextBlack}>DEV MODE</Text>
-        </TouchableOpacity>
-        
-        {/* Export Statistics - Green filled */}
-        <TouchableOpacity style={[styles.buttonFilled, styles.buttonGreen]} activeOpacity={0.7}>
-          <Text style={styles.buttonFilledTextBlack}>EXPORT STATISTICS</Text>
-        </TouchableOpacity>
-        
-        {/* About Us - Pink filled */}
-        <TouchableOpacity style={[styles.buttonFilled, styles.buttonPink]} activeOpacity={0.7}>
-          <Text style={styles.buttonFilledTextBlack}>ABOUT US</Text>
-        </TouchableOpacity>
-        
-        {/* Back - Red filled */}
-        <TouchableOpacity 
-          style={[styles.buttonFilled, styles.buttonRed]} 
-          activeOpacity={0.7}
-          onPress={handleBack}
-        >
-          <Text style={styles.buttonFilledTextBlack}>BACK</Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Green bottom line */}
-      <View style={styles.bottomLine}>
-        <View style={[styles.greenLine, { height: 13 + insets.bottom }]} />
-      </View>
+      {/* Green bottom line - Hide on web if desired, or keep */}
+      {Platform.OS !== 'web' && (
+        <View style={styles.bottomLine}>
+          <View style={[styles.greenLine, { height: 13 + insets.bottom }]} />
+        </View>
+      )}
     </View>
   );
 }
@@ -116,6 +142,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  webContent: {
+    maxWidth: 600,
+    width: '100%',
+    alignSelf: 'center',
+    paddingTop: 40,
   },
   header: {
     flexDirection: 'row',

@@ -5,8 +5,9 @@
 
 import { Colors, FontFamily, FontSizes, Spacing } from '@/constants/theme';
 import { usePathname, useRouter } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AboutUsModal } from './AboutUsModal';
 
 interface NavItem {
   name: string;
@@ -23,6 +24,7 @@ export function WebSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const [aboutModalVisible, setAboutModalVisible] = useState(false);
   
   // Get current active index
   const activeIndex = pathname.includes('statistics') ? 1 : 0;
@@ -112,14 +114,44 @@ export function WebSidebar() {
         })}
       </View>
       
-      {/* Settings button placeholder */}
-      <Pressable 
-        style={styles.settingsButton}
-        onPress={() => console.log('Settings pressed - placeholder')}
-      >
-        <Text style={styles.settingsIcon}>⚙</Text>
-        <Text style={styles.settingsText}>SETTINGS</Text>
-      </Pressable>
+      {/* Settings / Tools Section */}
+      <View style={styles.toolsContainer}>
+        <Text style={styles.sectionHeader}>TOOLS</Text>
+        
+        <Pressable 
+          style={styles.toolButton}
+          onPress={() => console.log('Manual Control')}
+        >
+          <Text style={styles.toolButtonText}>MANUAL CONTROL</Text>
+        </Pressable>
+
+        <Pressable 
+          style={styles.toolButton}
+          onPress={() => console.log('Dev Mode')}
+        >
+          <Text style={styles.toolButtonText}>DEV MODE</Text>
+        </Pressable>
+
+        <Pressable 
+          style={styles.toolButton}
+          onPress={() => console.log('Export Stats')}
+        >
+          <Text style={styles.toolButtonText}>EXPORT STATS</Text>
+        </Pressable>
+
+        <Pressable 
+          style={styles.toolButton}
+          onPress={() => setAboutModalVisible(true)}
+        >
+          <Text style={styles.toolButtonText}>ABOUT US</Text>
+        </Pressable>
+      </View>
+      
+      {/* About Us Modal */}
+      <AboutUsModal 
+        visible={aboutModalVisible} 
+        onClose={() => setAboutModalVisible(false)} 
+      />
       
       {/* Status indicator at bottom */}
       <View style={styles.statusContainer}>
@@ -170,8 +202,31 @@ const styles = StyleSheet.create({
     color: Colors.accentGreen,
   },
   navContainer: {
-    flex: 1,
+    // flex: 1, // Remove flex:1 so tools can fit below
+    marginBottom: Spacing.xl,
     position: 'relative',
+  },
+  toolsContainer: {
+    marginTop: 'auto',
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  sectionHeader: {
+    fontFamily: FontFamily.mono,
+    fontSize: 10,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+    opacity: 0.5,
+  },
+  toolButton: {
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  toolButtonText: {
+    fontFamily: FontFamily.mono,
+    fontSize: 11, // Slightly smaller than main nav
+    color: Colors.textSecondary,
+    letterSpacing: 1,
   },
   navSlider: {
     position: 'absolute',
@@ -224,22 +279,5 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     color: Colors.textSecondary,
   },
-  settingsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  settingsIcon: {
-    fontSize: 18,
-    marginRight: Spacing.sm,
-    color: Colors.textSecondary,
-  },
-  settingsText: {
-    fontFamily: FontFamily.mono,
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    letterSpacing: 1,
-  },
+
 });
