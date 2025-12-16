@@ -22,6 +22,7 @@ import com.parksense.android.bluetooth.BluetoothDeviceInfo
 import com.parksense.android.bluetooth.BluetoothManager
 import com.parksense.android.ui.adapter.BluetoothDeviceAdapter
 import com.parksense.android.ui.fragments.DashboardFragment
+import com.parksense.android.ui.fragments.ManualControlFragment
 import com.parksense.android.ui.fragments.SettingsFragment
 import com.parksense.android.ui.fragments.StatisticsFragment
 import com.parksense.android.ui.views.CustomBottomNavigation
@@ -31,9 +32,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bluetoothStatusText: TextView
     private lateinit var bluetoothHeaderLayout: View
     private lateinit var bottomNav: CustomBottomNavigation
+    private lateinit var settingsIcon: TextView
     
     private lateinit var bluetoothManager: BluetoothManager
     private var currentDialog: AlertDialog? = null
+    
+    // Settings toggle state
+    private var isSettingsActive = false
+    private var previousTabIndex = 0  // Track which tab we came from
     
     // Permission launcher for Bluetooth
     private val bluetoothPermissionLauncher = registerForActivityResult(
@@ -70,6 +76,11 @@ class MainActivity : AppCompatActivity() {
         updateBluetoothStatus()
     }
     
+    /**
+     * Expose BluetoothManager for fragments to access
+     */
+    fun getBluetoothManager(): BluetoothManager = bluetoothManager
+    
     private fun setupWindowInsets() {
         val bluetoothHeader = findViewById<View>(R.id.bluetoothHeaderLayout)
         val initialPaddingTop = bluetoothHeader.paddingTop
@@ -91,6 +102,7 @@ class MainActivity : AppCompatActivity() {
         bluetoothStatusText = findViewById(R.id.bluetoothStatus)
         bottomNav = findViewById(R.id.bottomNavigation)
         bluetoothHeaderLayout = findViewById(R.id.bluetoothHeaderLayout)
+        settingsIcon = findViewById(R.id.settingsIcon)
         
         // Set click listener for Bluetooth status
         val statusContainer = findViewById<View>(R.id.bluetoothStatusContainer)
@@ -98,16 +110,20 @@ class MainActivity : AppCompatActivity() {
             onBluetoothHeaderClick()
         }
         
-        // Set click listener for settings icon
-        val settingsIcon = findViewById<View>(R.id.settingsIcon)
-        settingsIcon?.setOnClickListener {
-            // Navigate to settings - placeholder for now
-            Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show()
+        // Set click listener for settings icon - TOGGLE behavior
+        settingsIcon.setOnClickListener {
+            toggleSettings()
         }
     }
     
     private fun setupBottomNavigation() {
         bottomNav.setOnTabSelectedListener { index ->
+            // Reset settings state if we were on settings
+            if (isSettingsActive) {
+                isSettingsActive = false
+                settingsIcon.setTextColor(android.graphics.Color.parseColor("#ededed"))
+            }
+            previousTabIndex = index
             when (index) {
                 0 -> loadFragment(DashboardFragment())
                 1 -> loadFragment(StatisticsFragment())
@@ -119,6 +135,82 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .commit()
+    }
+    
+    /**
+     * Toggle settings screen on/off (icon turns green when active)
+     * Settings covers full screen with bottom nav hidden
+     */
+    private fun toggleSettings() {
+        if (isSettingsActive) {
+            // Going back from settings to previous tab
+            isSettingsActive = false
+            settingsIcon.setTextColor(android.graphics.Color.parseColor("#ededed"))  // Original gray
+            showBottomNav()
+            // Load the previous fragment
+            when (previousTabIndex) {
+                0 -> loadFragment(DashboardFragment())
+                1 -> loadFragment(StatisticsFragment())
+            }
+            bottomNav.selectTab(previousTabIndex, false)
+        } else {
+            // Going to settings
+            isSettingsActive = true
+            settingsIcon.setTextColor(android.graphics.Color.parseColor("#42bc2b"))  // Green
+            hideBottomNav()
+            loadFragment(SettingsFragment())
+        }
+    }
+    
+    /**
+     * Hide the bottom navigation bar
+     */
+    fun hideBottomNav() {
+        bottomNav.visibility = View.GONE
+        // Update fragment container constraint to extend to bottom
+        val fragmentContainer = findViewById<View>(R.id.fragmentContainer)
+        val params = fragmentContainer.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+        params.bottomToTop = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
+        params.bottomToBottom = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+        fragmentContainer.layoutParams = params
+    }
+    
+    /**
+     * Show the bottom navigation bar
+     */
+    fun showBottomNav() {
+        bottomNav.visibility = View.VISIBLE
+        // Update fragment container constraint to stop at bottom nav
+        val fragmentContainer = findViewById<View>(R.id.fragmentContainer)
+        val params = fragmentContainer.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+        params.bottomToBottom = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
+        params.bottomToTop = R.id.bottomNavigation
+        fragmentContainer.layoutParams = params
+    }
+    
+    /**
+     * Exit settings screen (called from SettingsFragment back button)
+     */
+    fun exitSettings() {
+        if (isSettingsActive) {
+            toggleSettings()
+        }
+    }
+    
+    /**
+     * Show Manual Control screen
+     */
+    fun showManualControl() {
+        loadFragment(ManualControlFragment())
+    }
+    
+    /**
+     * Navigate to a specific tab by index (for use from fragments)
+     * 0 = Dashboard, 1 = Statistics
+     */
+    fun navigateToTab(index: Int) {
+        showBottomNav()
+        bottomNav.selectTab(index, false)
     }
     
     private fun onBluetoothHeaderClick() {
@@ -296,3 +388,4 @@ class MainActivity : AppCompatActivity() {
         bluetoothManager.cleanup()
     }
 }
+

@@ -10,6 +10,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import java.io.IOException
@@ -34,6 +36,14 @@ class BluetoothManager(private val context: Context) {
     private val discoveredDevices = mutableListOf<BluetoothDeviceInfo>()
     private var deviceDiscoveryCallback: ((List<BluetoothDeviceInfo>) -> Unit)? = null
     private var connectionCallback: ((Boolean, String?) -> Unit)? = null
+    
+    // Data handler callback for incoming Arduino responses
+    private var dataHandler: ((String) -> Unit)? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
+    
+    // Reader thread for continuous data reception
+    private var readerThread: Thread? = null
+    private var isReading = false
     
     private val discoveryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -161,6 +171,13 @@ class BluetoothManager(private val context: Context) {
         }
     }
     
+    /**
+     * Set callback for handling incoming data from Arduino
+     */
+    fun setDataHandler(handler: (String) -> Unit) {
+        dataHandler = handler
+    }
+    
     fun connectToDevice(deviceAddress: String, callback: (Boolean, String?) -> Unit) {
         connectionCallback = callback
         
@@ -195,6 +212,10 @@ class BluetoothManager(private val context: Context) {
                 connectedDevice = device
                 
                 Log.d(TAG, "Connected to ${device.name ?: device.address}")
+                
+                // Start the reader loop (from professor's code)
+                startReaderLoop()
+                
                 callback(true, null)
                 
             } catch (e: IOException) {
@@ -208,7 +229,60 @@ class BluetoothManager(private val context: Context) {
         }.start()
     }
     
+    /**
+     * Reader loop from professor's code - continuously reads incoming data
+     */
+    private fun startReaderLoop() {
+        isReading = true
+        readerThread = Thread {
+            val buffer = ByteArray(1024)
+            val sb = StringBuilder()
+            try {
+                while (isReading && inputStream != null) {
+                    val bytesRead = inputStream!!.read(buffer)
+                    if (bytesRead > 0) {
+                        val s = String(buffer, 0, bytesRead)
+                        sb.append(s)
+                        
+                        // Process complete lines (newline-terminated)
+                        var idx = sb.indexOf("\n")
+                        while (idx != -1) {
+                            val line = sb.substring(0, idx).trim()
+                            sb.delete(0, idx + 1)
+                            handleLine(line)
+                            idx = sb.indexOf("\n")
+                        }
+                    } else {
+                        Thread.sleep(50)
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "Reader loop error", e)
+                mainHandler.post {
+                    dataHandler?.invoke("ERR:Connection lost")
+                }
+            } catch (e: InterruptedException) {
+                Log.d(TAG, "Reader thread interrupted")
+            }
+        }
+        readerThread?.start()
+    }
+    
+    /**
+     * Handle incoming data lines from Arduino (adapted from professor's code)
+     */
+    private fun handleLine(line: String) {
+        Log.d(TAG, "Received: $line")
+        mainHandler.post {
+            dataHandler?.invoke(line)
+        }
+    }
+    
     fun disconnect() {
+        isReading = false
+        readerThread?.interrupt()
+        readerThread = null
+        
         try {
             inputStream?.close()
             outputStream?.close()
@@ -239,15 +313,84 @@ class BluetoothManager(private val context: Context) {
     
     fun getConnectedDeviceAddress(): String? = connectedDevice?.address
     
+    /**
+     * Send raw data to Arduino
+     */
     fun sendData(data: String): Boolean {
         return try {
             outputStream?.write(data.toByteArray())
             outputStream?.flush()
+            Log.d(TAG, "Sent: $data")
             true
         } catch (e: IOException) {
             Log.e(TAG, "Error sending data", e)
             false
         }
+    }
+    
+    /**
+     * Send command with newline terminator (standard Arduino protocol)
+     */
+    fun sendCommand(command: String): Boolean {
+        val cmd = if (command.endsWith("\n")) command else "$command\n"
+        return sendData(cmd)
+    }
+    
+    // ============================================
+    // PARKING-SPECIFIC COMMANDS (matching React Native)
+    // ============================================
+    
+    /**
+     * Send PING command to flash LED 5 times on specified slot
+     */
+    fun pingSlot(slotName: String): Boolean {
+        Log.d(TAG, "Sending PING command for: $slotName")
+        return sendCommand("PING:$slotName")
+    }
+    
+    /**
+     * Send DISABLE command for a parking slot
+     */
+    fun disableSlot(slotName: String): Boolean {
+        Log.d(TAG, "Sending DISABLE command for: $slotName")
+        return sendCommand("DISABLE:$slotName")
+    }
+    
+    /**
+     * Send ENABLE command for a parking slot
+     */
+    fun enableSlot(slotName: String): Boolean {
+        Log.d(TAG, "Sending ENABLE command for: $slotName")
+        return sendCommand("ENABLE:$slotName")
+    }
+    
+    /**
+     * Request sensor reading (similar to professor's READ_DIST)
+     */
+    fun requestSensorReading(slotName: String): Boolean {
+        return sendCommand("READ:$slotName")
+    }
+    
+    /**
+     * Send servo angle command (from professor's code)
+     */
+    fun sendServoAngle(angle: Int): Boolean {
+        return sendCommand("SERVO:$angle")
+    }
+    
+    /**
+     * Send LCD text command (from professor's code)
+     */
+    fun sendLCDText(text: String): Boolean {
+        val truncated = text.take(16) // LCD typically 16 chars
+        return sendCommand("LCD:$truncated")
+    }
+    
+    /**
+     * Request distance reading (from professor's code)
+     */
+    fun requestDistance(): Boolean {
+        return sendCommand("READ_DIST")
     }
     
     fun readData(buffer: ByteArray): Int {
@@ -269,3 +412,4 @@ class BluetoothManager(private val context: Context) {
         }
     }
 }
+

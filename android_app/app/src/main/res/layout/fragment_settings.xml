@@ -1,22 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0a0909">
+    android:background="#121212">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SETTINGS"
-        android:textColor="#ededed"
-        android:textSize="24sp"
-        android:fontFamily="monospace"
-        android:letterSpacing="0.1"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingHorizontal="40dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TOOLS &amp; SETTINGS"
+            android:textColor="#ededed"
+            android:textSize="24sp"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.1"
+            android:gravity="center"
+            android:layout_marginTop="60dp"
+            android:layout_marginBottom="60dp" />
+
+        <!-- Buttons Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Manual Control - White -->
+            <Button
+                android:id="@+id/btnManualControl"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="MANUAL CONTROL"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.1"
+                app:backgroundTint="#EDEDED"
+                android:layout_marginBottom="40dp" />
+
+            <!-- Dev Mode - Blue -->
+            <Button
+                android:id="@+id/btnDevMode"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="DEV MODE"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.1"
+                app:backgroundTint="#1F4FCE"
+                android:layout_marginBottom="40dp" />
+
+            <!-- Export Statistics - Green -->
+            <Button
+                android:id="@+id/btnExportStats"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="EXPORT STATISTICS"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.1"
+                app:backgroundTint="#42BC2B"
+                android:layout_marginBottom="40dp" />
+
+            <!-- About Us - Pink -->
+            <Button
+                android:id="@+id/btnAboutUs"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="ABOUT US"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.1"
+                app:backgroundTint="#C3257A"
+                android:layout_marginBottom="40dp" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Back - Red -->
+            <Button
+                android:id="@+id/btnBack"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="BACK"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.1"
+                app:backgroundTint="#BA2D2D"
+                android:layout_marginBottom="80dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Green bottom line (same height as nav bar bottom line) -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_gravity="bottom"
+        android:background="#42bc2b" />
+
+</FrameLayout>

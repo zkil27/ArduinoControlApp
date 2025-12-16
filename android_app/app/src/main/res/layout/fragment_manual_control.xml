@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="50dp"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="60dp">
+
+            <!-- Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MANUAL CONTROL:"
+                android:textColor="#ededed"
+                android:textSize="20sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Grid Container -->
+            <GridLayout
+                android:id="@+id/controlsGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:useDefaultMargins="true">
+
+                <!-- Entry Servo -->
+                <LinearLayout
+                    android:id="@+id/btnEntryServo"
+                    style="@style/ManualControlButton"
+                    android:layout_columnWeight="1">
+                    <LinearLayout style="@style/ManualControlButtonInner">
+                        <TextView style="@style/ManualControlTitle" android:text="ENTRY SERVO" />
+                        <TextView style="@style/ManualControlAction" android:text="OPEN" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Exit Servo -->
+                <LinearLayout
+                    android:id="@+id/btnExitServo"
+                    style="@style/ManualControlButton"
+                    android:layout_columnWeight="1">
+                    <LinearLayout style="@style/ManualControlButtonInner">
+                        <TextView style="@style/ManualControlTitle" android:text="EXIT SERVO" />
+                        <TextView style="@style/ManualControlAction" android:text="OPEN" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Add Virtual Vacant -->
+                <LinearLayout
+                    android:id="@+id/btnAddVacant"
+                    style="@style/ManualControlButton"
+                    android:layout_columnWeight="1">
+                    <LinearLayout style="@style/ManualControlButtonInner">
+                        <TextView style="@style/ManualControlTitle" android:text="ADD VIRTUAL\nVACANT SLOT" />
+                        <TextView style="@style/ManualControlAction" android:text="ADD" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Add Virtual Occupied -->
+                <LinearLayout
+                    android:id="@+id/btnAddOccupied"
+                    style="@style/ManualControlButton"
+                    android:layout_columnWeight="1">
+                    <LinearLayout style="@style/ManualControlButtonInner">
+                        <TextView style="@style/ManualControlTitle" android:text="ADD VIRTUAL\nOCCUPIED SLOT" />
+                        <TextView style="@style/ManualControlAction" android:text="ADD" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Ping All Devices -->
+                <LinearLayout
+                    android:id="@+id/btnPingAll"
+                    style="@style/ManualControlButton"
+                    android:layout_columnWeight="1">
+                    <LinearLayout style="@style/ManualControlButtonInner">
+                        <TextView style="@style/ManualControlTitle" android:text="PING ALL\nDEVICES" />
+                        <TextView style="@style/ManualControlAction" android:text="TEST" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Simulate Traffic -->
+                <LinearLayout
+                    android:id="@+id/btnSimulateTraffic"
+                    style="@style/ManualControlButton"
+                    android:layout_columnWeight="1">
+                    <LinearLayout style="@style/ManualControlButtonInner">
+                        <TextView style="@style/ManualControlTitle" android:text="SIMULATE\nTRAFFIC" />
+                        <TextView style="@style/ManualControlAction" android:text="RANDOM" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Clear Parking Status (Danger) -->
+                <LinearLayout
+                    android:id="@+id/btnVacateAll"
+                    style="@style/ManualControlButtonDanger"
+                    android:layout_columnWeight="1">
+                    <LinearLayout style="@style/ManualControlButtonInnerDanger">
+                        <TextView style="@style/ManualControlTitle" android:text="CLEAR PARKING\nSTATUS" />
+                        <TextView style="@style/ManualControlAction" android:text="VACATE ALL" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Remove Slot (Danger) -->
+                <LinearLayout
+                    android:id="@+id/btnRemoveSlot"
+                    style="@style/ManualControlButtonDanger"
+                    android:layout_columnWeight="1">
+                    <LinearLayout style="@style/ManualControlButtonInnerDanger">
+                        <TextView style="@style/ManualControlTitle" android:text="REMOVE\nPARKING SLOT" />
+                        <TextView style="@style/ManualControlAction" android:text="REMOVE" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Reset Slots (Danger) -->
+                <LinearLayout
+                    android:id="@+id/btnResetSlots"
+                    style="@style/ManualControlButtonDanger"
+                    android:layout_columnWeight="1">
+                    <LinearLayout style="@style/ManualControlButtonInnerDanger">
+                        <TextView style="@style/ManualControlTitle" android:text="RESET\nSLOT DATA" />
+                        <TextView style="@style/ManualControlAction" android:text="RESET" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </GridLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Green bottom line (same height as nav bar) -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_gravity="bottom"
+        android:background="#42bc2b" />
+
+</FrameLayout>

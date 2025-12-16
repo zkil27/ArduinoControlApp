@@ -131,14 +131,49 @@ class DashboardFragment : Fragment() {
         
         // Disable/Enable button
         btnDisableEnable.setOnClickListener {
-            Toast.makeText(requireContext(), "Disable/Enable functionality coming soon", Toast.LENGTH_SHORT).show()
-            // TODO: Implement actual disable/enable logic
+            val mainActivity = activity as? com.parksense.android.MainActivity
+            val btManager = mainActivity?.getBluetoothManager()
+            
+            if (btManager == null || !btManager.isConnected()) {
+                Toast.makeText(requireContext(), "Not connected to Bluetooth device", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            val slotName = slot.name
+            val currentlyDisabled = slot.isDisabled
+            
+            val success = if (currentlyDisabled) {
+                btManager.enableSlot(slotName)
+            } else {
+                btManager.disableSlot(slotName)
+            }
+            
+            if (success) {
+                Toast.makeText(requireContext(), 
+                    if (currentlyDisabled) "Enable command sent to $slotName" else "Disable command sent to $slotName", 
+                    Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Failed to send command", Toast.LENGTH_SHORT).show()
+            }
+            dialog.dismiss()
         }
         
         // Ping button
         btnPing.setOnClickListener {
-            Toast.makeText(requireContext(), "Ping LED functionality coming soon", Toast.LENGTH_SHORT).show()
-            // TODO: Implement actual ping LED logic
+            val mainActivity = activity as? com.parksense.android.MainActivity
+            val btManager = mainActivity?.getBluetoothManager()
+            
+            if (btManager == null || !btManager.isConnected()) {
+                Toast.makeText(requireContext(), "Not connected to Bluetooth device", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            val success = btManager.pingSlot(slot.name)
+            if (success) {
+                Toast.makeText(requireContext(), "Ping sent to ${slot.name} - LED will flash 5 times", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Failed to send ping", Toast.LENGTH_SHORT).show()
+            }
         }
         
         // Start real-time updates for duration and billing
