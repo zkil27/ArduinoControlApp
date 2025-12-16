@@ -493,6 +493,7 @@ export function useDeviceCommands() {
   const sendDisableCommand = async (slotId: string, disable: boolean): Promise<DeviceCommand | null> => {
     try {
       setLoading(true);
+      console.log(`[sendDisableCommand] Starting - slotId: ${slotId}, disable: ${disable}`);
       
       // Insert command
       const { data: cmdData, error: cmdError } = await supabase
@@ -506,29 +507,61 @@ export function useDeviceCommands() {
         .select()
         .single();
 
-      if (cmdError) throw cmdError;
+      if (cmdError) {
+        console.error('[sendDisableCommand] Command insert error:', cmdError);
+        throw cmdError;
+      }
+      console.log('[sendDisableCommand] Command inserted:', cmdData);
 
       // Also update the slot's is_disabled flag
-      const { error: slotError } = await supabase
+      const { data: slotData, error: slotError } = await supabase
         .from('parking_slots')
         .update({ is_disabled: disable })
-        .eq('id', slotId);
+        .eq('id', slotId)
+        .select();
 
-      if (slotError) throw slotError;
+      if (slotError) {
+        console.error('[sendDisableCommand] Slot update error:', slotError);
+        throw slotError;
+      }
+      console.log('[sendDisableCommand] Slot updated:', slotData);
 
-      // Update slot_status - clear occupied_since when disabling
-      const { error: statusError } = await supabase
+      // Try to update slot_status first
+      const { data: updateData, error: updateError } = await supabase
         .from('slot_status')
         .update({ 
           status: disable ? 'disabled' : 'vacant',
-          occupied_since: null,  // Clear the timer
+          occupied_since: null,
         })
-        .eq('slot_id', slotId);
+        .eq('slot_id', slotId)
+        .select();
 
-      if (statusError) throw statusError;
+      console.log('[sendDisableCommand] Update result:', updateData, updateError);
+
+      // If no rows were updated (empty array), insert a new record
+      if (!updateData || updateData.length === 0) {
+        console.log('[sendDisableCommand] No slot_status record found, inserting new one');
+        const { data: insertData, error: insertError } = await supabase
+          .from('slot_status')
+          .insert({ 
+            slot_id: slotId,
+            status: disable ? 'disabled' : 'vacant',
+            occupied_since: null,
+          })
+          .select();
+
+        if (insertError) {
+          console.error('[sendDisableCommand] Status insert error:', insertError);
+          throw insertError;
+        }
+        console.log('[sendDisableCommand] Status inserted:', insertData);
+      } else {
+        console.log('[sendDisableCommand] Status updated:', updateData);
+      }
 
       return cmdData;
     } catch (err: any) {
+      console.error('[sendDisableCommand] Error:', err);
       setError(err.message);
       return null;
     } finally {

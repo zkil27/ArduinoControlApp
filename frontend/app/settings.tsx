@@ -89,7 +89,7 @@ export default function SettingsScreen() {
       <View style={Platform.OS === 'web' ? styles.webContent : { flex: 1 }}>
         {/* Title */}
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>ADDITIONAL SETTINGS</Text>
+          <Text style={styles.title}>TOOLS & SETTINGS</Text>
         </View>
         
         {/* Buttons */}
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accentGreen,
   },
   buttonPink: {
-    backgroundColor: Colors.accentPink, // or Colors.statusWarning if accentPink is not vibrant enough
+    backgroundColor: Colors.accentPink,
   },
   buttonRed: {
     backgroundColor: Colors.statusOvertime,

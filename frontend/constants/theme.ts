@@ -166,7 +166,7 @@ export const BorderRadius = {
 export const BillingConfig = {
   ratePerHour: 25,              // PHP 25/hr
   overtimeRatePerHour: 100,     // PHP 100/hr after overtime
-  overtimeThresholdMinutes: 180, // 3 hours
+  overtimeThresholdMinutes: 10, // 10 minutes for testing
   currency: '₱',
   currencyCode: 'PHP',
 };

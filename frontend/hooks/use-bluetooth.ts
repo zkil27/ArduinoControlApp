@@ -9,7 +9,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { PermissionsAndroid, Platform } from 'react-native';
+import { Alert, Linking, PermissionsAndroid, Platform } from 'react-native';
 
 // Types
 export interface BluetoothDevice {
@@ -37,7 +37,7 @@ interface BluetoothState {
 // Billing rates (should match Supabase billing_config)
 const RATE_PER_HOUR = 25.00;
 const OVERTIME_RATE_PER_HOUR = 100.00;
-const OVERTIME_THRESHOLD_MINUTES = 180;
+const OVERTIME_THRESHOLD_MINUTES = 10;
 
 // Try to import the library, but handle if it's not available
 let RNBluetoothClassic: any = null;
@@ -118,26 +118,78 @@ export function useBluetooth() {
     }
   }, []);
 
+  // Open app settings for manual permission granting
+  const openAppSettings = useCallback(() => {
+    if (Platform.OS === 'android') {
+      Linking.openSettings();
+    }
+  }, []);
+
   // Request Bluetooth permissions (Android)
   const requestPermissions = useCallback(async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
       try {
-        const granted = await PermissionsAndroid.requestMultiple([
+        const permissions = [
           PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
           PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        ]);
+        ];
+
+        const granted = await PermissionsAndroid.requestMultiple(permissions);
         
-        return Object.values(granted).every(
+        const allGranted = Object.values(granted).every(
           (permission) => permission === PermissionsAndroid.RESULTS.GRANTED
         );
+
+        if (allGranted) {
+          return true;
+        }
+
+        // Check if any permission was permanently denied ("never_ask_again")
+        const permanentlyDenied = Object.values(granted).some(
+          (permission) => permission === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN
+        );
+
+        if (permanentlyDenied) {
+          // User selected "Don't ask again" - need to open settings
+          Alert.alert(
+            'Bluetooth Permission Required',
+            'Bluetooth permissions have been permanently denied. Please enable them in app settings to use Bluetooth features.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { 
+                text: 'Open Settings', 
+                onPress: () => openAppSettings() 
+              },
+            ]
+          );
+          return false;
+        }
+
+        // Permission was denied but not permanently - ask again
+        Alert.alert(
+          'Bluetooth Permission Required',
+          'This app needs Bluetooth permissions to connect to parking sensors. Would you like to grant permission?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Try Again', 
+              onPress: async () => {
+                // Re-request permissions
+                await requestPermissions();
+              } 
+            },
+          ]
+        );
+
+        return false;
       } catch (err) {
         console.error('Permission request failed:', err);
         return false;
       }
     }
     return true; // iOS handles permissions differently
-  }, []);
+  }, [openAppSettings]);
 
   // Check if Bluetooth is enabled
   const checkBluetoothEnabled = useCallback(async () => {
