@@ -161,6 +161,23 @@ class ManualControlFragment : Fragment() {
                 }
             }
         }
+        
+        // LCD Send Button
+        val editLcdText = view.findViewById<android.widget.EditText>(R.id.editLcdText)
+        view.findViewById<View>(R.id.btnSendLcd)?.setOnClickListener {
+            val text = editLcdText?.text?.toString() ?: ""
+            if (text.isEmpty()) {
+                showToast("Please enter text to display")
+                return@setOnClickListener
+            }
+            if (bluetoothManager?.isConnected() == true) {
+                bluetoothManager.sendLCDText(text)
+                showToast("Sent to LCD: $text")
+                editLcdText?.text?.clear()
+            } else {
+                showToast("Bluetooth not connected")
+            }
+        }
     }
     
     private fun showToast(message: String) {

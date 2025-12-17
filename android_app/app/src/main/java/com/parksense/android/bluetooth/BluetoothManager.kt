@@ -39,6 +39,10 @@ class BluetoothManager(private val context: Context) {
     
     // Data handler callback for incoming Arduino responses
     private var dataHandler: ((String) -> Unit)? = null
+    
+    // Slot status callback for SLOT:<name>:<status> messages
+    private var slotStatusHandler: ((slotName: String, status: String) -> Unit)? = null
+    
     private val mainHandler = Handler(Looper.getMainLooper())
     
     // Reader thread for continuous data reception
@@ -178,6 +182,13 @@ class BluetoothManager(private val context: Context) {
         dataHandler = handler
     }
     
+    /**
+     * Set callback for handling slot status updates (SLOT:<name>:<status>)
+     */
+    fun setSlotStatusHandler(handler: (slotName: String, status: String) -> Unit) {
+        slotStatusHandler = handler
+    }
+    
     fun connectToDevice(deviceAddress: String, callback: (Boolean, String?) -> Unit) {
         connectionCallback = callback
         
@@ -270,9 +281,25 @@ class BluetoothManager(private val context: Context) {
     
     /**
      * Handle incoming data lines from Arduino (adapted from professor's code)
+     * Parses SLOT:<name>:<status> messages for real-time updates
      */
     private fun handleLine(line: String) {
         Log.d(TAG, "Received: $line")
+        
+        // Parse SLOT:<name>:<status> messages
+        if (line.startsWith("SLOT:")) {
+            val parts = line.split(":")
+            if (parts.size >= 3) {
+                val slotName = parts[1]
+                val status = parts[2].lowercase()
+                Log.d(TAG, "Parsed slot update: $slotName -> $status")
+                mainHandler.post {
+                    slotStatusHandler?.invoke(slotName, status)
+                }
+            }
+        }
+        
+        // Always pass raw data to general handler
         mainHandler.post {
             dataHandler?.invoke(line)
         }

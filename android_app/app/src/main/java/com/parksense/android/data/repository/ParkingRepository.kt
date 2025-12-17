@@ -243,4 +243,115 @@ class ParkingRepository {
             Result.failure(e)
         }
     }
+    
+    // ============================================
+    // Bluetooth Real-Time Update Methods
+    // ============================================
+    
+    /**
+     * Update slot status by name (for Bluetooth real-time updates)
+     * Called when Arduino sends SLOT:<name>:<status> via HC-05
+     * Also creates parking sessions for statistics when slot becomes vacant
+     */
+    suspend fun updateSlotStatusByName(slotName: String, status: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            // First get the slot by name
+            val slotsResponse = api.getParkingSlots()
+            val slots = slotsResponse.body() ?: emptyList()
+            
+            val slot = slots.find { it.name.equals(slotName, ignoreCase = true) }
+            if (slot == null) {
+                return@withContext Result.failure(Exception("Slot $slotName not found"))
+            }
+            
+            val currentStatus = slot.slotStatus?.status
+            val occupiedSince = slot.slotStatus?.occupiedSince
+            val now = Date()
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+            
+            // If changing from occupied/overtime to vacant, create a parking session
+            if (status == "vacant" && (currentStatus == "occupied" || currentStatus == "overtime") && occupiedSince != null) {
+                createParkingSessionRecord(slot, occupiedSince, now, dateFormat)
+            }
+            
+            // Build update body based on status
+            val updateBody = when (status) {
+                "occupied" -> mapOf(
+                    "status" to "occupied",
+                    "occupied_since" to dateFormat.format(now),
+                    "updated_at" to dateFormat.format(now)
+                )
+                "vacant" -> mapOf(
+                    "status" to "vacant",
+                    "occupied_since" to null as Any?,
+                    "updated_at" to dateFormat.format(now)
+                )
+                "overtime" -> mapOf(
+                    "status" to "overtime",
+                    "updated_at" to dateFormat.format(now)
+                )
+                else -> mapOf(
+                    "status" to status,
+                    "updated_at" to dateFormat.format(now)
+                )
+            }
+            
+            val response = api.updateSlotStatus("eq.${slot.id}", updateBody)
+            
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to update: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Create a parking session record for statistics
+     */
+    private suspend fun createParkingSessionRecord(
+        slot: ParkingSlot,
+        occupiedSince: String,
+        endTime: Date,
+        dateFormat: SimpleDateFormat
+    ) {
+        try {
+            // Parse the start time
+            val startTime = dateFormat.parse(occupiedSince.substringBefore('+').substringBefore('Z'))
+            if (startTime == null) return
+            
+            // Calculate duration in minutes
+            val durationMinutes = ((endTime.time - startTime.time) / 60000).toInt()
+            
+            // Calculate billing
+            val allowedMinutes = slot.allowedMinutes ?: 60
+            val wasOvertime = durationMinutes > allowedMinutes
+            val amountCharged = if (wasOvertime) {
+                val overtimeMinutes = durationMinutes - allowedMinutes
+                20.0 + (overtimeMinutes * 0.50) // Base + overtime rate
+            } else {
+                20.0 // Flat rate
+            }
+            
+            // Create session record
+            val sessionBody = mapOf(
+                "id" to UUID.randomUUID().toString(),
+                "slot_id" to slot.id,
+                "slot_name" to slot.name,
+                "started_at" to dateFormat.format(startTime),
+                "ended_at" to dateFormat.format(endTime),
+                "duration_minutes" to durationMinutes,
+                "amount_charged" to amountCharged,
+                "was_overtime" to wasOvertime,
+                "created_at" to dateFormat.format(endTime)
+            )
+            
+            api.createParkingSession(sessionBody)
+        } catch (e: Exception) {
+            // Log error but don't fail the status update
+            e.printStackTrace()
+        }
+    }
 }

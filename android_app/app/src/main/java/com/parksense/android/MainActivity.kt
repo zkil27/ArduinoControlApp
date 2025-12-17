@@ -16,8 +16,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 import com.parksense.android.bluetooth.BluetoothDeviceInfo
 import com.parksense.android.bluetooth.BluetoothManager
 import com.parksense.android.ui.adapter.BluetoothDeviceAdapter
@@ -364,11 +366,49 @@ class MainActivity : AppCompatActivity() {
                 if (success) {
                     Toast.makeText(this, "Connected to ${device.displayName}", Toast.LENGTH_SHORT).show()
                     updateBluetoothStatus()
+                    
+                    // Set up slot status handler for real-time updates from Arduino
+                    setupSlotStatusHandler()
                 } else {
                     Toast.makeText(this, error ?: getString(R.string.bluetooth_connection_failed), Toast.LENGTH_LONG).show()
                     updateBluetoothStatus()
                 }
             }
+        }
+    }
+    
+    /**
+     * Set up handler for real-time slot status updates via Bluetooth
+     * Arduino sends: SLOT:<name>:<status> (e.g., SLOT:P1:OCCUPIED)
+     */
+    private fun setupSlotStatusHandler() {
+        val repository = com.parksense.android.data.repository.ParkingRepository()
+        
+        bluetoothManager.setSlotStatusHandler { slotName, status ->
+            android.util.Log.d("MainActivity", "Slot status update: $slotName -> $status")
+            
+            // Update Supabase in background using lifecycleScope
+            lifecycleScope.launch {
+                val result = repository.updateSlotStatusByName(slotName, status)
+                result.onSuccess {
+                    Toast.makeText(this@MainActivity, "$slotName: ${status.uppercase()}", Toast.LENGTH_SHORT).show()
+                    
+                    // Immediately refresh the dashboard
+                    refreshDashboard()
+                }.onFailure { e ->
+                    Toast.makeText(this@MainActivity, "Update failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    /**
+     * Refresh the dashboard if it's currently visible
+     */
+    private fun refreshDashboard() {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+        if (fragment is DashboardFragment) {
+            fragment.refreshData()
         }
     }
     

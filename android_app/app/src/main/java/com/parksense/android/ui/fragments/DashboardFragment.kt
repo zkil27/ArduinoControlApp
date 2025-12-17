@@ -104,8 +104,14 @@ class DashboardFragment : Fragment() {
         }
         txtStatusLabel.setTextColor(statusColor)
         
-        // Set disable/enable button text
+        // Set disable/enable button text and background based on state
         btnDisableEnable.text = if (slot.isDisabled) getString(R.string.slot_details_enable) else getString(R.string.slot_details_disable)
+        // Green background for enable, gray for disable
+        if (slot.isDisabled) {
+            btnDisableEnable.setBackgroundResource(R.drawable.button_green)
+        } else {
+            btnDisableEnable.setBackgroundResource(R.drawable.button_gray)
+        }
         
         // Setup initial values
         updateDialogTime(slot, txtSinceTime, txtDuration, txtBillingAmount, txtBillingRate)
@@ -129,33 +135,81 @@ class DashboardFragment : Fragment() {
             dialog.dismiss()
         }
         
-        // Disable/Enable button
-        btnDisableEnable.setOnClickListener {
-            val mainActivity = activity as? com.parksense.android.MainActivity
-            val btManager = mainActivity?.getBluetoothManager()
-            
-            if (btManager == null || !btManager.isConnected()) {
-                Toast.makeText(requireContext(), "Not connected to Bluetooth device", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+        // Disable/Enable button - Long press to confirm (2 seconds)
+        var holdStartTime = 0L
+        var isHolding = false
+        val holdDuration = 2000L // 2 seconds
+        val holdHandler = Handler(Looper.getMainLooper())
+        var holdRunnable: Runnable? = null
+        
+        btnDisableEnable.setOnTouchListener { v, event ->
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    isHolding = true
+                    holdStartTime = System.currentTimeMillis()
+                    // Visual feedback - change alpha
+                    v.alpha = 0.7f
+                    
+                    // Start progress indicator (change background color gradually)
+                    holdRunnable = object : Runnable {
+                        override fun run() {
+                            if (isHolding) {
+                                val elapsed = System.currentTimeMillis() - holdStartTime
+                                if (elapsed >= holdDuration) {
+                                    // Hold complete - execute action
+                                    v.alpha = 1.0f
+                                    isHolding = false
+                                    
+                                    val mainActivity = activity as? com.parksense.android.MainActivity
+                                    val btManager = mainActivity?.getBluetoothManager()
+                                    
+                                    if (btManager == null || !btManager.isConnected()) {
+                                        Toast.makeText(requireContext(), "Not connected to Bluetooth device", Toast.LENGTH_SHORT).show()
+                                        return
+                                    }
+                                    
+                                    val slotName = slot.name
+                                    val currentlyDisabled = slot.isDisabled
+                                    
+                                    val success = if (currentlyDisabled) {
+                                        btManager.enableSlot(slotName)
+                                    } else {
+                                        btManager.disableSlot(slotName)
+                                    }
+                                    
+                                    if (success) {
+                                        Toast.makeText(requireContext(), 
+                                            if (currentlyDisabled) "Enable command sent to $slotName" else "Disable command sent to $slotName", 
+                                            Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(requireContext(), "Failed to send command", Toast.LENGTH_SHORT).show()
+                                    }
+                                    dialog.dismiss()
+                                } else {
+                                    // Flash effect during hold
+                                    v.alpha = 0.5f + (0.5f * (elapsed.toFloat() / holdDuration))
+                                    holdHandler.postDelayed(this, 50)
+                                }
+                            }
+                        }
+                    }
+                    holdHandler.post(holdRunnable!!)
+                    true
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    isHolding = false
+                    v.alpha = 1.0f
+                    holdRunnable?.let { holdHandler.removeCallbacks(it) }
+                    
+                    // Show hint if released too early
+                    val elapsed = System.currentTimeMillis() - holdStartTime
+                    if (elapsed < holdDuration) {
+                        Toast.makeText(requireContext(), "Hold for 2 seconds to ${if (slot.isDisabled) "enable" else "disable"}", Toast.LENGTH_SHORT).show()
+                    }
+                    true
+                }
+                else -> false
             }
-            
-            val slotName = slot.name
-            val currentlyDisabled = slot.isDisabled
-            
-            val success = if (currentlyDisabled) {
-                btManager.enableSlot(slotName)
-            } else {
-                btManager.disableSlot(slotName)
-            }
-            
-            if (success) {
-                Toast.makeText(requireContext(), 
-                    if (currentlyDisabled) "Enable command sent to $slotName" else "Disable command sent to $slotName", 
-                    Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(requireContext(), "Failed to send command", Toast.LENGTH_SHORT).show()
-            }
-            dialog.dismiss()
         }
         
         // Ping button
@@ -251,6 +305,13 @@ class DashboardFragment : Fragment() {
         val mins = minutes % 60
         val secs = 0 // We only track minutes from timestamp
         return String.format("%02dh : %02dm : %02ds", hours, mins, secs)
+    }
+    
+    /**
+     * Public method to refresh data - called from MainActivity after Bluetooth updates
+     */
+    fun refreshData() {
+        loadParkingSlots()
     }
     
     private fun loadParkingSlots() {

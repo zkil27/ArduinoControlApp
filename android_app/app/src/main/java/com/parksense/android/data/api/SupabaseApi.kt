@@ -24,24 +24,24 @@ interface SupabaseApi {
     
     @Headers("Content-Type: application/json", "Prefer: return=representation")
     @POST("parking_slots")
-    suspend fun addParkingSlot(@Body slot: Map<String, Any?>): Response<List<ParkingSlot>>
+    suspend fun addParkingSlot(@Body slot: Map<String, @JvmSuppressWildcards Any?>): Response<List<ParkingSlot>>
     
     @Headers("Content-Type: application/json", "Prefer: return=representation")
     @POST("slot_status")
-    suspend fun addSlotStatus(@Body status: Map<String, Any?>): Response<List<SlotStatus>>
+    suspend fun addSlotStatus(@Body status: Map<String, @JvmSuppressWildcards Any?>): Response<List<SlotStatus>>
     
     @Headers("Content-Type: application/json")
     @PATCH("slot_status")
     suspend fun updateSlotStatus(
         @Query("slot_id") slotIdFilter: String,
-        @Body status: Map<String, Any?>
+        @Body status: Map<String, @JvmSuppressWildcards Any?>
     ): Response<Unit>
     
     @Headers("Content-Type: application/json")
     @PATCH("slot_status")
     suspend fun updateAllSlotStatuses(
         @Query("status") statusFilter: String,
-        @Body status: Map<String, Any?>
+        @Body status: Map<String, @JvmSuppressWildcards Any?>
     ): Response<Unit>
     
     @Headers("Content-Type: application/json")
@@ -51,4 +51,12 @@ interface SupabaseApi {
     @Headers("Content-Type: application/json")
     @DELETE("slot_status")
     suspend fun deleteSlotStatus(@Query("slot_id") slotIdFilter: String): Response<Unit>
+    
+    // ============================================
+    // Parking Sessions API Methods
+    // ============================================
+    
+    @Headers("Content-Type: application/json", "Prefer: return=representation")
+    @POST("parking_sessions")
+    suspend fun createParkingSession(@Body session: Map<String, @JvmSuppressWildcards Any?>): Response<List<ParkingSession>>
 }
