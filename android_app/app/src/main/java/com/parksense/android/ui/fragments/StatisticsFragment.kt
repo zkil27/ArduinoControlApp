@@ -15,6 +15,7 @@ import com.parksense.android.R
 import com.parksense.android.data.models.ParkingSession
 import com.parksense.android.data.repository.ParkingRepository
 import com.parksense.android.ui.adapter.SessionAdapter
+import com.parksense.android.ui.views.LineChartView
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -28,6 +29,7 @@ class StatisticsFragment : Fragment() {
     private lateinit var sessionsList: RecyclerView
     private lateinit var emptySessionsText: TextView
     private lateinit var peakHoursText: TextView
+    private lateinit var peakHoursChart: LineChartView
     private lateinit var logsText: TextView
     
     private val repository = ParkingRepository()
@@ -54,6 +56,7 @@ class StatisticsFragment : Fragment() {
         sessionsList = view.findViewById(R.id.sessionsList)
         emptySessionsText = view.findViewById(R.id.emptySessionsText)
         peakHoursText = view.findViewById(R.id.peakHoursText)
+        peakHoursChart = view.findViewById(R.id.peakHoursChart)
         logsText = view.findViewById(R.id.logsText)
         
         // Setup RecyclerView
@@ -122,44 +125,46 @@ class StatisticsFragment : Fragment() {
     }
     
     private fun updatePeakHours(sessions: List<ParkingSession>) {
-        if (sessions.isEmpty()) {
-            peakHoursText.text = "No data available yet"
-            return
-        }
-        
-        // Calculate peak hours
-        val hourCounts = mutableMapOf<Int, Int>()
+        // Extract hours from session start times (convert UTC to local timezone)
+        val sessionHours = mutableListOf<Int>()
         sessions.forEach { session ->
             try {
-                val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-                val date = format.parse(session.startedAt.substringBefore('+').substringBefore('Z'))
+                // Parse ISO 8601 timestamp - handle both +00:00 and Z formats
+                val timestamp = session.startedAt
+                    .replace("Z", "+00:00")  // Normalize Z to +00:00
+                
+                // Use ISO 8601 format with timezone
+                val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
+                val date = format.parse(timestamp)
+                
                 date?.let {
+                    // Calendar will automatically use local timezone
                     val calendar = Calendar.getInstance()
                     calendar.time = it
                     val hour = calendar.get(Calendar.HOUR_OF_DAY)
-                    hourCounts[hour] = (hourCounts[hour] ?: 0) + 1
+                    sessionHours.add(hour)
                 }
             } catch (e: Exception) {
-                // Ignore parsing errors
+                // Try fallback parsing for timestamps without timezone
+                try {
+                    val cleanTimestamp = session.startedAt.substringBefore('+').substringBefore('Z')
+                    val fallbackFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                    fallbackFormat.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                    val date = fallbackFormat.parse(cleanTimestamp)
+                    date?.let {
+                        val calendar = Calendar.getInstance()
+                        calendar.time = it
+                        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+                        sessionHours.add(hour)
+                    }
+                } catch (e2: Exception) {
+                    // Ignore parsing errors
+                }
             }
         }
         
-        if (hourCounts.isEmpty()) {
-            peakHoursText.text = "No data available yet"
-            return
-        }
-        
-        val peakHour = hourCounts.maxByOrNull { it.value }
-        val peakHourFormatted = when {
-            peakHour == null -> "Unknown"
-            peakHour.key == 0 -> "12AM"
-            peakHour.key == 12 -> "12PM"
-            peakHour.key < 12 -> "${peakHour.key}AM"
-            else -> "${peakHour.key - 12}PM"
-        }
-        
-        peakHoursText.text = "Peak: $peakHourFormatted (${peakHour?.value ?: 0} sessions)"
-        peakHoursText.setTextColor(resources.getColor(android.R.color.white, null))
+        // Update the chart with session hours
+        peakHoursChart.setDataFromSessions(sessionHours)
     }
     
     private fun startUptimeTicker() {

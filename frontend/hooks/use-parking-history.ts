@@ -120,15 +120,15 @@ export function useParkingHistory() {
 
   // Calculate today's stats from existing sessions (cached, no fetch)
   const calculateTodayStats = useCallback((): DailyStats => {
+    // Get today's date string in YYYY-MM-DD format (local timezone)
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayStr = today.toLocaleDateString('en-CA'); // 'en-CA' gives YYYY-MM-DD format
 
-    // Filter sessions for today from existing data
+    // Filter sessions where ended_at date matches today (string comparison like Android)
     const todaySessions = sessions.filter(session => {
-      const sessionDate = new Date(session.ended_at);
-      return sessionDate >= today && sessionDate < tomorrow;
+      // Extract YYYY-MM-DD from the timestamp string
+      const sessionDateStr = session.ended_at.split('T')[0];
+      return sessionDateStr === todayStr;
     });
 
     // Calculate stats
@@ -145,7 +145,7 @@ export function useParkingHistory() {
     });
 
     return {
-      date: today.toISOString().split('T')[0],
+      date: todayStr,
       total_sessions,
       total_revenue,
       total_duration_minutes,
@@ -168,7 +168,7 @@ export function useParkingHistory() {
 
     const todaySessions = await fetchSessionsByDateRange(today, tomorrow);
     const stats = calculateDailyStats(todaySessions);
-    
+
     return stats[0] || {
       date: today.toISOString().split('T')[0],
       total_sessions: 0,

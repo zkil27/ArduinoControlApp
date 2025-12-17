@@ -10,29 +10,31 @@ import com.parksense.android.bluetooth.BluetoothDeviceInfo
 
 class BluetoothDeviceAdapter(
     private var devices: List<BluetoothDeviceInfo>,
+    private var connectedDeviceAddress: String? = null,
     private val onDeviceClick: (BluetoothDeviceInfo) -> Unit
 ) : RecyclerView.Adapter<BluetoothDeviceAdapter.DeviceViewHolder>() {
 
     inner class DeviceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val txtDeviceName: TextView = itemView.findViewById(R.id.txtDeviceName)
         private val txtDeviceAddress: TextView = itemView.findViewById(R.id.txtDeviceAddress)
-        private val txtPairedBadge: TextView = itemView.findViewById(R.id.txtPairedBadge)
-        private val layoutRssi: View = itemView.findViewById(R.id.layoutRssi)
-        private val txtRssi: TextView = itemView.findViewById(R.id.txtRssi)
+        private val txtStatus: TextView = itemView.findViewById(R.id.txtStatus)
 
         fun bind(device: BluetoothDeviceInfo) {
             txtDeviceName.text = device.displayName
             txtDeviceAddress.text = device.address
             
-            // Show paired badge if device is paired
-            txtPairedBadge.visibility = if (device.isPaired) View.VISIBLE else View.GONE
+            // Check if this device is currently connected
+            val isConnected = device.address == connectedDeviceAddress
             
-            // Show RSSI if available
-            if (device.rssi != null) {
-                layoutRssi.visibility = View.VISIBLE
-                txtRssi.text = "${device.rssi} dBm"
+            if (isConnected) {
+                txtStatus.text = "CONNECTED"
+                txtStatus.setBackgroundResource(R.drawable.badge_status_connected)
+                // Apply connected border to item
+                itemView.setBackgroundResource(R.drawable.item_bluetooth_connected)
             } else {
-                layoutRssi.visibility = View.GONE
+                txtStatus.text = "TAP TO CONNECT"
+                txtStatus.setBackgroundResource(R.drawable.badge_status)
+                itemView.setBackgroundResource(R.drawable.item_bluetooth_background)
             }
             
             // Handle click
@@ -56,6 +58,11 @@ class BluetoothDeviceAdapter(
 
     fun updateDevices(newDevices: List<BluetoothDeviceInfo>) {
         devices = newDevices
+        notifyDataSetChanged()
+    }
+    
+    fun setConnectedDevice(address: String?) {
+        connectedDeviceAddress = address
         notifyDataSetChanged()
     }
 }

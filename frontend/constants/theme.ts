@@ -14,12 +14,12 @@ export const Colors = {
   backgroundDark: '#000000',
   cardBackground: '#121111',
   cardBackgroundLight: '#121212',
-  
+
   // Text
   textPrimary: '#EDEDED',
   textSecondary: '#444444',
   textMuted: '#272727',
-  
+
   // Status Colors
   statusOccupied: '#42BC2B',      // Green - lots of time
   statusEnoughTime: '#1F4FCE',    // Blue - enough time
@@ -27,31 +27,31 @@ export const Colors = {
   statusOvertime: '#BA2D2D',      // Red - overtime
   statusVacant: '#444444',        // Gray - vacant
   statusDisabled: '#272727',      // Dark gray - disabled
-  
+
   // Progress Ring Colors (based on time remaining)
   progressGreen: '#42BC2B',       // > 60% time remaining
   progressBlue: '#1F4FCE',        // 30-60% time remaining
   progressPink: '#C3257A',        // 10-30% time remaining
   progressRed: '#BA2D2D',         // < 10% or overtime
-  
+
   // Accent Colors
   accentBlue: '#1F4FCE',
   accentPink: '#C3257A',
   accentGreen: '#42BC2B',
   accentYellow: '#BEC91F',
-  
+
   // UI Elements
   border: '#272727',
   buttonPrimary: '#1F4FCE',
   buttonDanger: '#BA2D2D',
   buttonSecondary: '#272727',
-  
+
   // Bluetooth Status Colors
   bluetoothStrong: '#42BC2B',       // Green
   bluetoothWeak: '#BEC91F',         // Yellow
   bluetoothNoConnection: '#BA2D2D', // Red
   bluetoothDisconnected: '#444444', // Gray
-  
+
   // Aliases for convenience
   primary: '#42BC2B',
   secondary: '#1F4FCE',
@@ -62,7 +62,7 @@ export const Colors = {
   occupied: '#42BC2B',
   overtime: '#BA2D2D',
   vacant: '#444444',
-  
+
   // Legacy support (light/dark mode)
   light: {
     text: '#11181C',
@@ -116,7 +116,7 @@ export const Fonts = Platform.select({
 export const FontFamily = {
   mono: Platform.select({
     ios: 'AzeretMono',
-    android: 'AzeretMono', 
+    android: 'AzeretMono',
     default: 'AzeretMono',
     web: 'AzeretMono',
   }) ?? 'AzeretMono',
@@ -164,8 +164,8 @@ export const BorderRadius = {
 // BILLING CONFIGURATION
 // ============================================
 export const BillingConfig = {
-  ratePerHour: 25,              // PHP 25/hr
-  overtimeRatePerHour: 100,     // PHP 100/hr after overtime
+  baseRate: 25,                 // PHP 25 flat fee (before overtime)
+  overtimeRate: 100,            // PHP 100 flat fee (after overtime, replaces base)
   overtimeThresholdMinutes: 10, // 10 minutes for testing
   currency: '₱',
   currencyCode: 'PHP',
@@ -225,7 +225,7 @@ export function getBluetoothStatus(rssi: number | null, isConnected: boolean): {
   return { label: 'No Connection', color: Colors.bluetoothNoConnection };
 }
 
-// Helper function to calculate billing
+// Helper function to calculate billing (one-time payment model)
 export function calculateBilling(occupiedSince: Date | null): {
   amount: number;
   isOvertime: boolean;
@@ -234,23 +234,16 @@ export function calculateBilling(occupiedSince: Date | null): {
   if (!occupiedSince) {
     return { amount: 0, isOvertime: false, minutesParked: 0 };
   }
-  
+
   const now = new Date();
   const minutesParked = Math.floor((now.getTime() - occupiedSince.getTime()) / 60000);
   const isOvertime = minutesParked > BillingConfig.overtimeThresholdMinutes;
-  
-  let amount: number;
-  if (!isOvertime) {
-    amount = (minutesParked / 60) * BillingConfig.ratePerHour;
-  } else {
-    const regularMinutes = BillingConfig.overtimeThresholdMinutes;
-    const overtimeMinutes = minutesParked - BillingConfig.overtimeThresholdMinutes;
-    amount = (regularMinutes / 60) * BillingConfig.ratePerHour 
-           + (overtimeMinutes / 60) * BillingConfig.overtimeRatePerHour;
-  }
-  
+
+  // One-time flat fee: ₱25 before overtime, ₱100 after overtime
+  const amount = isOvertime ? BillingConfig.overtimeRate : BillingConfig.baseRate;
+
   return {
-    amount: Math.round(amount * 100) / 100,
+    amount,
     isOvertime,
     minutesParked,
   };

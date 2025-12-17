@@ -2,8 +2,8 @@ package com.parksense.android.data
 
 object BillingConfig {
     const val CURRENCY = "₱"
-    const val RATE_PER_HOUR = 25.0
-    const val OVERTIME_RATE_PER_HOUR = 50.0
+    const val BASE_RATE = 25.0           // Flat fee before overtime
+    const val OVERTIME_RATE = 100.0      // Flat fee after overtime (replaces base)
     const val OVERTIME_THRESHOLD_MINUTES = 120 // 2 hours
     
     data class BillingResult(
@@ -11,19 +11,19 @@ object BillingConfig {
         val isOvertime: Boolean
     )
     
+    /**
+     * Calculate billing using one-time flat fee model:
+     * - Before overtime: ₱25 flat
+     * - After overtime: ₱100 flat (replaces base)
+     */
     fun calculateBilling(minutesParked: Int): BillingResult {
         val isOvertime = minutesParked > OVERTIME_THRESHOLD_MINUTES
         
-        val amount = if (!isOvertime) {
-            (minutesParked / 60.0) * RATE_PER_HOUR
-        } else {
-            val regularMinutes = OVERTIME_THRESHOLD_MINUTES
-            val overtimeMinutes = minutesParked - OVERTIME_THRESHOLD_MINUTES
-            (regularMinutes / 60.0) * RATE_PER_HOUR + (overtimeMinutes / 60.0) * OVERTIME_RATE_PER_HOUR
-        }
+        // One-time flat fee
+        val amount = if (isOvertime) OVERTIME_RATE else BASE_RATE
         
         return BillingResult(
-            amount = (amount * 100).toInt() / 100.0, // Round to 2 decimal places
+            amount = amount,
             isOvertime = isOvertime
         )
     }

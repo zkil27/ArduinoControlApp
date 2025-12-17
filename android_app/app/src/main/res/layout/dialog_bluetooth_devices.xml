@@ -4,106 +4,132 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#1a1a1a"
-    android:padding="20dp"
+    android:background="@color/dialog_background"
     android:minWidth="320dp">
 
-    <!-- Title -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/bluetooth_devices_title"
-        android:textSize="18sp"
-        android:textColor="#ffffff"
-        android:fontFamily="monospace"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-    <!-- Scan Button and Status -->
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="12dp">
-
-        <Button
-            android:id="@+id/btnScan"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:text="@string/bluetooth_scan"
-            android:textSize="12sp"
-            android:textColor="#ffffff"
-            android:background="@drawable/button_primary"
-            android:fontFamily="monospace"
-            android:textAllCaps="false" />
-
-        <ProgressBar
-            android:id="@+id/progressScanning"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginStart="12dp"
-            android:visibility="gone"
-            android:indeterminateTint="#3dd598" />
+        android:padding="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="#000000">
 
         <TextView
-            android:id="@+id/txtScanStatus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/bluetooth_devices_title"
+            android:textSize="20sp"
+            android:textColor="@color/text_primary"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.05" />
+
+        <TextView
+            android:id="@+id/btnClose"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="@string/bluetooth_scanning"
-            android:textSize="12sp"
-            android:textColor="#3dd598"
+            android:text="✕"
+            android:textSize="20sp"
+            android:textColor="#444444"
             android:fontFamily="monospace"
-            android:visibility="gone" />
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true" />
     </LinearLayout>
 
     <!-- Divider -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#2a2a2a"
-        android:layout_marginVertical="8dp" />
+        android:background="@color/border" />
+
+    <!-- Error Container (hidden by default) -->
+    <TextView
+        android:id="@+id/txtError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#33BA2D2D"
+        android:padding="8dp"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="8dp"
+        android:textSize="12sp"
+        android:textColor="#BA2D2D"
+        android:fontFamily="monospace"
+        android:gravity="center"
+        android:visibility="gone" />
 
     <!-- Device List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerDevices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="120dp"
-        android:maxHeight="300dp"
-        android:scrollbars="vertical" />
+        android:minHeight="150dp"
+        android:maxHeight="320dp"
+        android:padding="12dp"
+        android:scrollbars="vertical"
+        android:clipToPadding="false" />
 
     <!-- No Devices Message -->
-    <TextView
-        android:id="@+id/txtNoDevices"
+    <LinearLayout
+        android:id="@+id/layoutNoDevices"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:text="@string/bluetooth_no_devices"
-        android:textSize="14sp"
-        android:textColor="#676767"
-        android:fontFamily="monospace"
+        android:layout_height="150dp"
+        android:orientation="vertical"
         android:gravity="center"
-        android:visibility="gone" />
+        android:padding="20dp"
+        android:visibility="gone">
 
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#2a2a2a"
-        android:layout_marginVertical="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/bluetooth_no_devices"
+            android:textSize="14sp"
+            android:textColor="#444444"
+            android:fontFamily="monospace"
+            android:gravity="center" />
 
-    <!-- Cancel Button -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pair your HC-05 module in phone settings first"
+            android:textSize="12sp"
+            android:textColor="#444444"
+            android:fontFamily="monospace"
+            android:gravity="center"
+            android:layout_marginTop="8dp"
+            android:alpha="0.7" />
+    </LinearLayout>
+
+    <!-- Scan Button (at bottom, full width, like frontend) -->
     <Button
-        android:id="@+id/btnCancel"
+        android:id="@+id/btnScan"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:text="@string/bluetooth_cancel"
-        android:textSize="12sp"
-        android:textColor="#ba2d2d"
-        android:background="@drawable/button_secondary"
+        android:layout_height="48dp"
+        android:text="@string/bluetooth_scan"
+        android:textSize="14sp"
+        android:textColor="@color/text_primary"
+        android:background="@drawable/button_scan"
         android:fontFamily="monospace"
-        android:textAllCaps="false" />
+        android:textAllCaps="true"
+        android:letterSpacing="0.05" />
+
+    <!-- Progress indicator for scanning -->
+    <FrameLayout
+        android:id="@+id/layoutScanning"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/button_scan"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/text_primary" />
+    </FrameLayout>
 
 </LinearLayout>

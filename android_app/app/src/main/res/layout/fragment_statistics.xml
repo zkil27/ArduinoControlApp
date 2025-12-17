@@ -187,10 +187,10 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <!-- Peak Hours Card (Simplified) -->
+        <!-- Peak Hours Card with Line Chart -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="184dp"
             android:orientation="vertical"
             android:background="@drawable/card_background"
             android:padding="8dp"
@@ -204,16 +204,23 @@
                 android:textSize="11sp"
                 android:fontFamily="monospace" />
 
+            <com.parksense.android.ui.views.LineChartView
+                android:id="@+id/peakHoursChart"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="8dp" />
+
+            <!-- Hidden text for fallback/accessibility -->
             <TextView
                 android:id="@+id/peakHoursText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="No data available yet"
+                android:visibility="gone"
                 android:textColor="#666666"
                 android:textSize="10sp"
                 android:fontFamily="monospace"
-                android:gravity="center"
-                android:layout_marginTop="20dp" />
+                android:gravity="center" />
         </LinearLayout>
 
         <!-- System Logs Card -->

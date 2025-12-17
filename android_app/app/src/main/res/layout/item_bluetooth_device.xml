@@ -8,7 +8,8 @@
     android:background="@drawable/item_bluetooth_background"
     android:clickable="true"
     android:focusable="true"
-    android:layout_marginVertical="4dp">
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical">
 
     <!-- Device Info -->
     <LinearLayout
@@ -17,74 +18,38 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/txtDeviceName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <TextView
-                android:id="@+id/txtDeviceName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="HC-05"
-                android:textSize="14sp"
-                android:textColor="#ffffff"
-                android:fontFamily="monospace"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/txtPairedBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/bluetooth_paired"
-                android:textSize="10sp"
-                android:textColor="#3dd598"
-                android:fontFamily="monospace"
-                android:background="@drawable/badge_paired"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp"
-                android:layout_marginStart="8dp"
-                android:visibility="gone" />
-        </LinearLayout>
+            android:text="HC-05"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="2dp" />
 
         <TextView
             android:id="@+id/txtDeviceAddress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="00:00:00:00:00:00"
-            android:textSize="11sp"
-            android:textColor="#676767"
-            android:fontFamily="monospace"
-            android:layout_marginTop="2dp" />
-
+            android:textSize="12sp"
+            android:textColor="#444444"
+            android:fontFamily="monospace" />
     </LinearLayout>
 
-    <!-- RSSI Indicator (optional) -->
-    <LinearLayout
-        android:id="@+id/layoutRssi"
+    <!-- Status Indicator (TAP TO CONNECT / CONNECTED) -->
+    <TextView
+        android:id="@+id/txtStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="end"
-        android:visibility="gone">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="RSSI"
-            android:textSize="9sp"
-            android:textColor="#676767"
-            android:fontFamily="monospace" />
-
-        <TextView
-            android:id="@+id/txtRssi"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="-65 dBm"
-            android:textSize="11sp"
-            android:textColor="#3dd598"
-            android:fontFamily="monospace" />
-    </LinearLayout>
+        android:text="TAP TO CONNECT"
+        android:textSize="12sp"
+        android:textColor="@color/text_primary"
+        android:fontFamily="monospace"
+        android:background="@drawable/badge_status"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp"
+        android:letterSpacing="0.03" />
 
 </LinearLayout>

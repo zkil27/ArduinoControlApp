@@ -2,11 +2,12 @@
 <resources>
     <color name="background">#0a0909</color>
     <color name="card_background">#0a0909</color>
+    <color name="dialog_background">#000000</color>
     <color name="border">#272727</color>
     <color name="text_primary">#ededed</color>
     <color name="text_secondary">#676767</color>
     <color name="accent_green">#42bc2b</color>
-    <color name="accent_blue">#1e6ed8</color>
+    <color name="accent_blue">#1F4FCE</color>
     <color name="accent_pink">#d91e9c</color>
     <color name="status_overtime">#ba2d2d</color>
     <color name="status_occupied">#42bc2b</color>

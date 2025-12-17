@@ -2,12 +2,12 @@ import { BillingConfig, FontFamily } from '@/constants/theme';
 import { BlurView } from 'expo-blur';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { HoldToConfirmButton } from './HoldToConfirmButton';
@@ -55,19 +55,12 @@ function formatDuration(minutes: number): string {
 
 function calculateBilling(minutesParked: number): { amount: number; isOvertime: boolean } {
   const isOvertime = minutesParked > BillingConfig.overtimeThresholdMinutes;
-  
-  let amount: number;
-  if (!isOvertime) {
-    amount = (minutesParked / 60) * BillingConfig.ratePerHour;
-  } else {
-    const regularMinutes = BillingConfig.overtimeThresholdMinutes;
-    const overtimeMinutes = minutesParked - BillingConfig.overtimeThresholdMinutes;
-    amount = (regularMinutes / 60) * BillingConfig.ratePerHour 
-           + (overtimeMinutes / 60) * BillingConfig.overtimeRatePerHour;
-  }
-  
+
+  // One-time flat fee: ₱25 before overtime, ₱100 after overtime
+  const amount = isOvertime ? BillingConfig.overtimeRate : BillingConfig.baseRate;
+
   return {
-    amount: Math.round(amount * 100) / 100,
+    amount,
     isOvertime,
   };
 }
@@ -88,28 +81,28 @@ export function SlotDetailsModal({
 }: SlotDetailsModalProps) {
   const [currentElapsed, setCurrentElapsed] = useState(elapsedMinutes);
   const [isPinging, setIsPinging] = useState(false);
-  
+
   // Reset elapsed when modal opens or elapsedMinutes changes
   useEffect(() => {
     setCurrentElapsed(elapsedMinutes);
   }, [elapsedMinutes, visible]);
-  
+
   // Update duration every second when modal is visible
   useEffect(() => {
     if (!visible || status === 'vacant' || status === 'add' || status === 'disabled' || isDisabled) {
       return;
     }
-    
+
     const interval = setInterval(() => {
-      setCurrentElapsed(prev => prev + (1/60)); // Add 1 second
+      setCurrentElapsed(prev => prev + (1 / 60)); // Add 1 second
     }, 1000);
-    
+
     return () => clearInterval(interval);
   }, [visible, status, isDisabled]);
-  
+
   const duration = formatDuration(currentElapsed);
   const billing = useMemo(() => calculateBilling(currentElapsed), [currentElapsed]);
-  
+
   const handlePing = async () => {
     setIsPinging(true);
     try {
@@ -118,11 +111,11 @@ export function SlotDetailsModal({
       setIsPinging(false);
     }
   };
-  
+
   const handleDisable = async () => {
     await onDisable();
   };
-  
+
   const getStatusColor = (): string => {
     switch (status) {
       case 'occupied': return '#42bc2b';
@@ -132,7 +125,7 @@ export function SlotDetailsModal({
       default: return '#444444';
     }
   };
-  
+
   const getStatusLabel = (): string => {
     switch (status) {
       case 'occupied': return 'OCCUPIED';
@@ -142,9 +135,9 @@ export function SlotDetailsModal({
       default: return '';
     }
   };
-  
+
   const sensorPercent = Math.round((sensorValue / 1023) * 100);
-  
+
   return (
     <Modal
       visible={visible}
@@ -153,87 +146,87 @@ export function SlotDetailsModal({
       onRequestClose={onClose}
     >
       <BlurView intensity={50} tint="dark" style={styles.blurContainer}>
-        <TouchableOpacity 
-          style={styles.overlay} 
-          activeOpacity={1} 
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
           onPress={onClose}
         >
           <TouchableOpacity activeOpacity={1} style={styles.modal}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.slotName}>{slotName}</Text>
-            <Text style={[styles.statusLabel, { color: getStatusColor() }]}>
-              {getStatusLabel()}
-            </Text>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M18 6L6 18M6 6l12 12"
-                  stroke="#ededed"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </Svg>
-            </TouchableOpacity>
-          </View>
-          
-          {/* Time Info */}
-          <View style={styles.timeSection}>
-            <Text style={styles.timeLabel}>
-              Since: {startTime ? `${formatTime(startTime)} Today` : '--'}
-            </Text>
-            <Text style={styles.duration}>{duration}</Text>
-          </View>
-          
-          {/* Billing */}
-          <View style={styles.billingSection}>
-            <Text style={styles.billingLabel}>Billing:</Text>
-            <View style={styles.billingRow}>
-              <Text style={styles.billingAmount}>
-                {BillingConfig.currency} {billing.amount.toFixed(2)}
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.slotName}>{slotName}</Text>
+              <Text style={[styles.statusLabel, { color: getStatusColor() }]}>
+                {getStatusLabel()}
               </Text>
-              <Text style={styles.billingRate}>
-                {BillingConfig.currency}{billing.isOvertime ? BillingConfig.overtimeRatePerHour : BillingConfig.ratePerHour}/hr
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M18 6L6 18M6 6l12 12"
+                    stroke="#ededed"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </TouchableOpacity>
+            </View>
+
+            {/* Time Info */}
+            <View style={styles.timeSection}>
+              <Text style={styles.timeLabel}>
+                Since: {startTime ? `${formatTime(startTime)} Today` : '--'}
               </Text>
+              <Text style={styles.duration}>{duration}</Text>
             </View>
-          </View>
-          
-          {/* Sensor Data */}
-          <View style={styles.sensorSection}>
-            <View style={styles.sensorHeader}>
-              <Text style={styles.sensorLabel}>Sensor Data:</Text>
-              <Text style={styles.sensorPercent}>{sensorPercent}%</Text>
+
+            {/* Billing */}
+            <View style={styles.billingSection}>
+              <Text style={styles.billingLabel}>Billing:</Text>
+              <View style={styles.billingRow}>
+                <Text style={styles.billingAmount}>
+                  {BillingConfig.currency} {billing.amount.toFixed(2)}
+                </Text>
+                <Text style={styles.billingRate}>
+                  {billing.isOvertime ? 'overtime' : 'flat'}
+                </Text>
+              </View>
             </View>
-            <View style={styles.sensorBar}>
-              <View style={[styles.sensorFill, { width: `${sensorPercent}%` }]} />
+
+            {/* Sensor Data */}
+            <View style={styles.sensorSection}>
+              <View style={styles.sensorHeader}>
+                <Text style={styles.sensorLabel}>Sensor Data:</Text>
+                <Text style={styles.sensorPercent}>{sensorPercent}%</Text>
+              </View>
+              <View style={styles.sensorBar}>
+                <View style={[styles.sensorFill, { width: `${sensorPercent}%` }]} />
+              </View>
             </View>
-          </View>
-          
-          {/* Actions */}
-          <View style={styles.actions}>
-            <HoldToConfirmButton
-              label={(isDisabled || status === 'disabled') ? 'ENABLE' : 'DISABLE'}
-              holdDuration={2000}
-              onConfirm={handleDisable}
-              disabled={commandLoading}
-              variant={(isDisabled || status === 'disabled') ? 'primary' : 'danger'}
-            />
-            
-            <TouchableOpacity
-              style={[styles.pingButton, (isPinging || commandLoading) && styles.buttonDisabled]}
-              onPress={handlePing}
-              disabled={isPinging || commandLoading}
-            >
-              {isPinging ? (
-                <ActivityIndicator size="small" color="#121111" />
-              ) : (
-                <Text style={styles.pingButtonText}>PING</Text>
-              )}
-            </TouchableOpacity>
-          </View>
+
+            {/* Actions */}
+            <View style={styles.actions}>
+              <HoldToConfirmButton
+                label={(isDisabled || status === 'disabled') ? 'ENABLE' : 'DISABLE'}
+                holdDuration={2000}
+                onConfirm={handleDisable}
+                disabled={commandLoading}
+                variant={(isDisabled || status === 'disabled') ? 'primary' : 'danger'}
+              />
+
+              <TouchableOpacity
+                style={[styles.pingButton, (isPinging || commandLoading) && styles.buttonDisabled]}
+                onPress={handlePing}
+                disabled={isPinging || commandLoading}
+              >
+                {isPinging ? (
+                  <ActivityIndicator size="small" color="#121111" />
+                ) : (
+                  <Text style={styles.pingButtonText}>PING</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         </TouchableOpacity>
-      </TouchableOpacity>
       </BlurView>
     </Modal>
   );

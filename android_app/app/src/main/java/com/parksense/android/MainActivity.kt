@@ -273,14 +273,14 @@ class MainActivity : AppCompatActivity() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_bluetooth_devices, null)
         
         val recyclerDevices = dialogView.findViewById<RecyclerView>(R.id.recyclerDevices)
-        val txtNoDevices = dialogView.findViewById<TextView>(R.id.txtNoDevices)
+        val layoutNoDevices = dialogView.findViewById<View>(R.id.layoutNoDevices)
         val btnScan = dialogView.findViewById<Button>(R.id.btnScan)
-        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
-        val progressScanning = dialogView.findViewById<ProgressBar>(R.id.progressScanning)
-        val txtScanStatus = dialogView.findViewById<TextView>(R.id.txtScanStatus)
+        val btnClose = dialogView.findViewById<TextView>(R.id.btnClose)
+        val layoutScanning = dialogView.findViewById<View>(R.id.layoutScanning)
         
         // Setup RecyclerView
-        val deviceAdapter = BluetoothDeviceAdapter(emptyList()) { device ->
+        val connectedAddress = bluetoothManager.getConnectedDeviceAddress()
+        val deviceAdapter = BluetoothDeviceAdapter(emptyList(), connectedAddress) { device ->
             onDeviceSelected(device)
         }
         recyclerDevices.layoutManager = LinearLayoutManager(this)
@@ -291,10 +291,10 @@ class MainActivity : AppCompatActivity() {
         if (pairedDevices.isNotEmpty()) {
             deviceAdapter.updateDevices(pairedDevices)
             recyclerDevices.visibility = View.VISIBLE
-            txtNoDevices.visibility = View.GONE
+            layoutNoDevices.visibility = View.GONE
         } else {
             recyclerDevices.visibility = View.GONE
-            txtNoDevices.visibility = View.VISIBLE
+            layoutNoDevices.visibility = View.VISIBLE
         }
         
         // Scan button
@@ -304,22 +304,20 @@ class MainActivity : AppCompatActivity() {
                 // Stop scanning
                 bluetoothManager.stopDiscovery()
                 isScanning = false
-                btnScan.text = getString(R.string.bluetooth_scan)
-                progressScanning.visibility = View.GONE
-                txtScanStatus.visibility = View.GONE
+                btnScan.visibility = View.VISIBLE
+                layoutScanning.visibility = View.GONE
             } else {
                 // Start scanning
                 isScanning = true
-                btnScan.text = getString(R.string.bluetooth_stop_scan)
-                progressScanning.visibility = View.VISIBLE
-                txtScanStatus.visibility = View.VISIBLE
+                btnScan.visibility = View.GONE
+                layoutScanning.visibility = View.VISIBLE
                 
                 bluetoothManager.startDiscovery { devices ->
                     runOnUiThread {
                         if (devices.isNotEmpty()) {
                             deviceAdapter.updateDevices(devices)
                             recyclerDevices.visibility = View.VISIBLE
-                            txtNoDevices.visibility = View.GONE
+                            layoutNoDevices.visibility = View.GONE
                         }
                     }
                 }
@@ -332,7 +330,10 @@ class MainActivity : AppCompatActivity() {
             .setCancelable(true)
             .create()
         
-        btnCancel.setOnClickListener {
+        // Make dialog background transparent so our custom background shows
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        btnClose.setOnClickListener {
             if (isScanning) {
                 bluetoothManager.stopDiscovery()
             }

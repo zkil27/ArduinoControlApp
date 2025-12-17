@@ -226,13 +226,12 @@ class DashboardFragment : Fragment() {
             // Calculate billing
             val billing = BillingConfig.calculateBilling(elapsedMinutes)
             txtBillingAmount.text = "${BillingConfig.CURRENCY} ${String.format("%.2f", billing.amount)}"
-            val rate = if (billing.isOvertime) BillingConfig.OVERTIME_RATE_PER_HOUR else BillingConfig.RATE_PER_HOUR
-            txtBillingRate.text = "${BillingConfig.CURRENCY}${rate.toInt()}/hr"
+            txtBillingRate.text = if (billing.isOvertime) "overtime" else "flat"
         } else {
             txtSinceTime.text = "${getString(R.string.slot_details_since)} --"
             txtDuration.text = "00h : 00m : 00s"
             txtBillingAmount.text = "${BillingConfig.CURRENCY} 0.00"
-            txtBillingRate.text = "${BillingConfig.CURRENCY}${BillingConfig.RATE_PER_HOUR.toInt()}/hr"
+            txtBillingRate.text = "flat"
         }
     }
     
