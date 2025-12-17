@@ -45,7 +45,9 @@ class ParkingRepository {
     }
     
     fun calculateTodayStats(sessions: List<ParkingSession>): TodayStats {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        dateFormat.timeZone = TimeZone.getTimeZone("Asia/Manila")
+        val today = dateFormat.format(Date())
         
         val todaySessions = sessions.filter { session ->
             session.endedAt.startsWith(today)

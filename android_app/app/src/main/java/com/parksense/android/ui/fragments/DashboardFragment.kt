@@ -87,7 +87,9 @@ class DashboardFragment : Fragment() {
         val txtSensorPercent = dialogView.findViewById<TextView>(R.id.txtSensorPercent)
         val progressSensor = dialogView.findViewById<ProgressBar>(R.id.progressSensor)
         val btnClose = dialogView.findViewById<View>(R.id.btnClose)
-        val btnDisableEnable = dialogView.findViewById<Button>(R.id.btnDisableEnable)
+        val btnDisableEnable = dialogView.findViewById<android.widget.FrameLayout>(R.id.disableButtonContainer)
+        val btnDisableEnableText = dialogView.findViewById<TextView>(R.id.btnDisableEnableText)
+        val progressOverlay = dialogView.findViewById<View>(R.id.progressOverlay)
         val btnPing = dialogView.findViewById<Button>(R.id.btnPing)
         
         // Set slot name and status
@@ -105,13 +107,20 @@ class DashboardFragment : Fragment() {
         txtStatusLabel.setTextColor(statusColor)
         
         // Set disable/enable button text and background based on state
-        btnDisableEnable.text = if (slot.isDisabled) getString(R.string.slot_details_enable) else getString(R.string.slot_details_disable)
+        btnDisableEnableText.text = if (slot.isDisabled) getString(R.string.slot_details_enable) else getString(R.string.slot_details_disable)
         // Green background for enable, gray for disable
         if (slot.isDisabled) {
             btnDisableEnable.setBackgroundResource(R.drawable.button_green)
+            // For enable, use green progress overlay
+            progressOverlay.setBackgroundColor(android.graphics.Color.parseColor("#2d8a4e"))
         } else {
             btnDisableEnable.setBackgroundResource(R.drawable.button_gray)
+            // For disable, use red progress overlay
+            progressOverlay.setBackgroundColor(android.graphics.Color.parseColor("#ba2d2d"))
         }
+        // Reset progress overlay width to 0
+        progressOverlay.layoutParams.width = 0
+        progressOverlay.requestLayout()
         
         // Setup initial values
         updateDialogTime(slot, txtSinceTime, txtDuration, txtBillingAmount, txtBillingRate)
@@ -135,7 +144,7 @@ class DashboardFragment : Fragment() {
             dialog.dismiss()
         }
         
-        // Disable/Enable button - Long press to confirm (2 seconds)
+        // Disable/Enable button - Long press to confirm (2 seconds) with fill animation
         var holdStartTime = 0L
         var isHolding = false
         val holdDuration = 2000L // 2 seconds
@@ -147,18 +156,24 @@ class DashboardFragment : Fragment() {
                 android.view.MotionEvent.ACTION_DOWN -> {
                     isHolding = true
                     holdStartTime = System.currentTimeMillis()
-                    // Visual feedback - change alpha
-                    v.alpha = 0.7f
                     
-                    // Start progress indicator (change background color gradually)
+                    // Start progress animation - fill from left to right
                     holdRunnable = object : Runnable {
                         override fun run() {
                             if (isHolding) {
                                 val elapsed = System.currentTimeMillis() - holdStartTime
+                                val progress = (elapsed.toFloat() / holdDuration).coerceIn(0f, 1f)
+                                
+                                // Update progress overlay width
+                                val containerWidth = v.width
+                                progressOverlay.layoutParams.width = (containerWidth * progress).toInt()
+                                progressOverlay.requestLayout()
+                                
                                 if (elapsed >= holdDuration) {
                                     // Hold complete - execute action
-                                    v.alpha = 1.0f
                                     isHolding = false
+                                    progressOverlay.layoutParams.width = 0
+                                    progressOverlay.requestLayout()
                                     
                                     val mainActivity = activity as? com.parksense.android.MainActivity
                                     val btManager = mainActivity?.getBluetoothManager()
@@ -186,9 +201,7 @@ class DashboardFragment : Fragment() {
                                     }
                                     dialog.dismiss()
                                 } else {
-                                    // Flash effect during hold
-                                    v.alpha = 0.5f + (0.5f * (elapsed.toFloat() / holdDuration))
-                                    holdHandler.postDelayed(this, 50)
+                                    holdHandler.postDelayed(this, 16) // ~60fps update rate
                                 }
                             }
                         }
@@ -198,7 +211,9 @@ class DashboardFragment : Fragment() {
                 }
                 android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
                     isHolding = false
-                    v.alpha = 1.0f
+                    // Reset progress overlay
+                    progressOverlay.layoutParams.width = 0
+                    progressOverlay.requestLayout()
                     holdRunnable?.let { holdHandler.removeCallbacks(it) }
                     
                     // Show hint if released too early
@@ -263,8 +278,10 @@ class DashboardFragment : Fragment() {
             // Format since time
             try {
                 val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+                sdf.timeZone = java.util.TimeZone.getTimeZone("Asia/Manila")
                 val date = sdf.parse(occupiedSince.substringBefore('+').substringBefore('Z'))
                 val timeFormat = SimpleDateFormat("h:mm a", Locale.US)
+                timeFormat.timeZone = java.util.TimeZone.getTimeZone("Asia/Manila")
                 val timeStr = if (date != null) timeFormat.format(date) else "--"
                 txtSinceTime.text = "${getString(R.string.slot_details_since)} $timeStr ${getString(R.string.slot_details_today)}"
             } catch (e: Exception) {
@@ -292,6 +309,7 @@ class DashboardFragment : Fragment() {
     private fun calculateElapsedMinutes(occupiedSince: String): Int {
         return try {
             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+            sdf.timeZone = java.util.TimeZone.getTimeZone("Asia/Manila")
             val startTime = sdf.parse(occupiedSince.substringBefore('+').substringBefore('Z'))
             val elapsed = System.currentTimeMillis() - (startTime?.time ?: 0)
             (elapsed / 60000).toInt()

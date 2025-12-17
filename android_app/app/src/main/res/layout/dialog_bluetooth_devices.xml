@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -113,6 +114,7 @@
         android:textSize="14sp"
         android:textColor="@color/text_primary"
         android:background="@drawable/button_scan"
+        app:backgroundTint="#444444"
         android:fontFamily="monospace"
         android:textAllCaps="true"
         android:letterSpacing="0.05" />

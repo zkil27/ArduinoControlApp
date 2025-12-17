@@ -76,7 +76,7 @@ class StatisticsFragment : Fragment() {
     private fun updateDate() {
         val now = Date()
         val months = arrayOf("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")
-        val calendar = Calendar.getInstance()
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Manila"))
         calendar.time = now
         
         val month = months[calendar.get(Calendar.MONTH)]
